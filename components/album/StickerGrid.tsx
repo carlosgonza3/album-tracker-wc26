@@ -57,7 +57,7 @@ interface StickerGridProps {
     ) => void;
 }
 
-const STICKER_COLUMNS = 3;
+const STICKER_COLUMNS = 3
 
 function StickerGridComponent(
     {

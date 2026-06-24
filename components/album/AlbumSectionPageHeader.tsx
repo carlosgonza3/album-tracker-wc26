@@ -64,40 +64,7 @@ function AlbumSectionPageHeaderComponent({
             />
 
             <View style={styles.gridHeadingRow}>
-                <View style={styles.gridCopy}>
-                    <Text style={styles.gridHeading}>
-                        Stickers
-                    </Text>
 
-                    <Text
-                        style={
-                            styles.gridDescription
-                        }
-                    >
-                        Hold, then swipe to update a
-                        sticker
-                    </Text>
-                </View>
-
-                <View
-                    accessibilityRole="text"
-                    accessibilityLabel={
-                        `${normalizedStickerCount} stickers in this section`
-                    }
-                    style={
-                        styles.gridCountBadge
-                    }
-                >
-                    <Text
-                        style={
-                            styles.gridCount
-                        }
-                    >
-                        {
-                            normalizedStickerCount
-                        }
-                    </Text>
-                </View>
             </View>
         </View>
     );

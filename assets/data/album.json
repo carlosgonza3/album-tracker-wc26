@@ -8,7 +8,7 @@
       "id": "PANINI",
       "name": "Panini",
       "stickers": [
-        { "id": "00", "name": "Panini", "type": "sticker" }
+        { "id": "00", "name": "Panini", "type": "foil" }
       ]
     },
     {
@@ -17,12 +17,12 @@
       "stickers": [
         { "id": "FWC1", "name": "Official Emblem", "type": "foil" },
         { "id": "FWC2", "name": "Official Emblem", "type": "foil" },
-        { "id": "FWC3", "name": "Official Mascots", "type": "sticker" },
-        { "id": "FWC4", "name": "Official Slogan", "type": "sticker" },
-        { "id": "FWC5", "name": "Trionda, Official Match Ball", "type": "sticker" },
-        { "id": "FWC6", "name": "Canada Emblem", "type": "sticker" },
-        { "id": "FWC7", "name": "Mexico Emblem", "type": "sticker" },
-        { "id": "FWC8", "name": "USA Emblem", "type": "sticker" }
+        { "id": "FWC3", "name": "Official Mascots", "type": "foil" },
+        { "id": "FWC4", "name": "Official Slogan", "type": "foil" },
+        { "id": "FWC5", "name": "Trionda, Official Match Ball", "type": "foil" },
+        { "id": "FWC6", "name": "Canada Emblem", "type": "foil" },
+        { "id": "FWC7", "name": "Mexico Emblem", "type": "foil" },
+        { "id": "FWC8", "name": "USA Emblem", "type": "foil" }
       ]
     },
     {
@@ -1325,17 +1325,17 @@
       "id": "FWCH",
       "name": "FIFA World Cup History",
       "stickers": [
-        { "id": "FWC9", "name": "FWC History 9", "type": "sticker" },
-        { "id": "FWC10", "name": "FWC History 10", "type": "sticker" },
-        { "id": "FWC11", "name": "FWC History 11", "type": "sticker" },
-        { "id": "FWC12", "name": "FWC History 12", "type": "sticker" },
-        { "id": "FWC13", "name": "FWC History 13", "type": "sticker" },
-        { "id": "FWC14", "name": "FWC History 14", "type": "sticker" },
-        { "id": "FWC15", "name": "FWC History 15", "type": "sticker" },
-        { "id": "FWC16", "name": "FWC History 16", "type": "sticker" },
-        { "id": "FWC17", "name": "FWC History 17", "type": "sticker" },
-        { "id": "FWC18", "name": "FWC History 18", "type": "sticker" },
-        { "id": "FWC19", "name": "FWC History 19", "type": "sticker" }
+        { "id": "FWC9", "name": "FWC History 9", "type": "foil" },
+        { "id": "FWC10", "name": "FWC History 10", "type": "foil" },
+        { "id": "FWC11", "name": "FWC History 11", "type": "foil" },
+        { "id": "FWC12", "name": "FWC History 12", "type": "foil" },
+        { "id": "FWC13", "name": "FWC History 13", "type": "foil" },
+        { "id": "FWC14", "name": "FWC History 14", "type": "foil" },
+        { "id": "FWC15", "name": "FWC History 15", "type": "foil" },
+        { "id": "FWC16", "name": "FWC History 16", "type": "foil" },
+        { "id": "FWC17", "name": "FWC History 17", "type": "foil" },
+        { "id": "FWC18", "name": "FWC History 18", "type": "foil" },
+        { "id": "FWC19", "name": "FWC History 19", "type": "foil" }
       ]
     },
     {

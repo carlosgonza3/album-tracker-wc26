@@ -34,12 +34,6 @@ interface StickerCardProps {
     sticker: StickerWithState;
     invertSwipeDirections: boolean;
 
-    /*
-     * These callbacks receive the sticker ID directly.
-     * StickerGrid can therefore pass the same stable
-     * functions to every card without creating inline
-     * closures for each render.
-     */
     onIncrementSticker: (
         stickerId: string
     ) => void;
@@ -117,10 +111,6 @@ function StickerCardComponent({
         onDecrementSticker,
     ]);
 
-    /*
-     * The gesture object is recreated only when this
-     * card's actionable data actually changes.
-     */
     const panGesture = useMemo(
         () =>
             Gesture.Pan()
@@ -157,10 +147,6 @@ function StickerCardComponent({
                     let maximumTranslation =
                         MAX_TRANSLATION;
 
-                    /*
-                     * A missing sticker cannot be decremented,
-                     * so block the removal direction.
-                     */
                     if (copies === 0) {
                         if (invertSwipeDirections) {
                             maximumTranslation = 0;
@@ -530,13 +516,21 @@ function StickerCardComponent({
                             {id}
                         </Text>
 
-                        {type === 'foil' && (
-                            <View style={styles.foilBadge}>
-                                <Text style={styles.foilText}>
-                                    FOIL
+                        {copies > 0 ? (
+                            <View
+                                style={[
+                                    styles.copyBadge,
+                                    isRepeated &&
+                                    styles.copyBadgeRepeated,
+                                ]}
+                            >
+                                <Text
+                                    style={styles.copyText}
+                                >
+                                    ×{copies}
                                 </Text>
                             </View>
-                        )}
+                        ) : null}
                     </View>
 
                     <Text
@@ -563,21 +557,13 @@ function StickerCardComponent({
                                     : 'Repeated'}
                         </Text>
 
-                        {copies > 0 && (
-                            <View
-                                style={[
-                                    styles.copyBadge,
-                                    isRepeated &&
-                                    styles.copyBadgeRepeated,
-                                ]}
-                            >
-                                <Text
-                                    style={styles.copyText}
-                                >
-                                    ×{copies}
+                        {type === 'foil' ? (
+                            <View style={styles.typeBadge}>
+                                <Text style={styles.typeText}>
+                                    FOIL
                                 </Text>
                             </View>
-                        )}
+                        ) : null}
                     </View>
                 </Animated.View>
             </GestureDetector>
@@ -585,13 +571,6 @@ function StickerCardComponent({
     );
 }
 
-/*
- * Compare only values that affect this card.
- *
- * When another sticker changes, this card keeps the
- * same metadata, count and callback identities, so
- * React skips its render completely.
- */
 function areStickerCardPropsEqual(
     previous: StickerCardProps,
     next: StickerCardProps
@@ -624,7 +603,8 @@ const styles = StyleSheet.create({
         flex: 1,
         minHeight: 132,
         overflow: 'hidden',
-        borderRadius: theme.radius.md,
+        borderRadius:
+        theme.radius.md,
     },
 
     activationOverlay: {
@@ -637,7 +617,8 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor:
             'rgba(53, 201, 111, 0.95)',
-        borderRadius: theme.radius.md,
+        borderRadius:
+        theme.radius.md,
         backgroundColor:
             'rgba(53, 201, 111, 0.08)',
     },
@@ -648,7 +629,8 @@ const styles = StyleSheet.create({
         bottom: 0,
         width: '58%',
         justifyContent: 'center',
-        paddingHorizontal: theme.spacing.md,
+        paddingHorizontal:
+        theme.spacing.md,
     },
 
     actionLeft: {
@@ -685,7 +667,8 @@ const styles = StyleSheet.create({
         theme.typography.sizes.lg,
         fontWeight:
         theme.typography.weights.bold,
-        color: theme.colors.textPrimary,
+        color:
+        theme.colors.textPrimary,
     },
 
     actionLabel: {
@@ -694,22 +677,26 @@ const styles = StyleSheet.create({
         theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.semibold,
-        color: theme.colors.textSecondary,
+        color:
+        theme.colors.textSecondary,
     },
 
     card: {
         flex: 1,
         minHeight: 132,
         zIndex: 3,
-        padding: theme.spacing.md,
+        padding:
+        theme.spacing.md,
         borderWidth: 1,
-        borderRadius: theme.radius.md,
+        borderRadius:
+        theme.radius.md,
         shadowColor:
             'rgba(53, 201, 111, 1)',
     },
 
     cardMissing: {
-        borderColor: theme.colors.border,
+        borderColor:
+        theme.colors.border,
         backgroundColor:
         theme.colors.missing,
     },
@@ -731,8 +718,9 @@ const styles = StyleSheet.create({
     topRow: {
         minHeight: 24,
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        justifyContent:
+            'space-between',
         gap: theme.spacing.xs,
     },
 
@@ -742,31 +730,18 @@ const styles = StyleSheet.create({
         theme.typography.sizes.md,
         fontWeight:
         theme.typography.weights.bold,
-        color: theme.colors.textPrimary,
-    },
-
-    foilBadge: {
-        paddingHorizontal: 6,
-        paddingVertical: 3,
-        borderRadius: theme.radius.full,
-        backgroundColor:
-            'rgba(245, 197, 24, 0.18)',
-    },
-
-    foilText: {
-        fontSize: 8,
-        fontWeight:
-        theme.typography.weights.bold,
-        letterSpacing: 0.5,
-        color: theme.colors.gold,
+        color:
+        theme.colors.textPrimary,
     },
 
     name: {
-        marginTop: theme.spacing.sm,
+        marginTop:
+        theme.spacing.sm,
         fontSize:
         theme.typography.sizes.xs,
         lineHeight: 16,
-        color: theme.colors.textSecondary,
+        color:
+        theme.colors.textSecondary,
     },
 
     footer: {
@@ -774,9 +749,9 @@ const styles = StyleSheet.create({
         marginTop: 'auto',
         paddingTop: theme.spacing.md,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end',
         justifyContent: 'space-between',
-        gap: theme.spacing.xs,
+        gap: theme.spacing.sm,
     },
 
     status: {
@@ -785,7 +760,8 @@ const styles = StyleSheet.create({
         theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.semibold,
-        color: theme.colors.missingText,
+        color:
+        theme.colors.missingText,
     },
 
     statusOwned: {
@@ -796,20 +772,45 @@ const styles = StyleSheet.create({
         color: '#6EE79A',
     },
 
+    typeBadge: {
+        paddingHorizontal: 7,
+        paddingVertical: 3,
+        borderWidth: 1,
+        borderColor:
+            'rgba(139, 126, 255, 0.52)',
+        borderRadius:
+        theme.radius.full,
+        backgroundColor:
+            'rgba(139, 126, 255, 0.16)',
+    },
+
+    typeText: {
+        fontSize: 8,
+        fontWeight:
+        theme.typography.weights.bold,
+        letterSpacing: 0.6,
+        color: '#B8AEFF',
+    },
+
     copyBadge: {
         minWidth: 28,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 7,
         paddingVertical: 4,
-        borderRadius: theme.radius.full,
+        borderWidth: 1,
+        borderColor:
+            'rgba(148, 163, 184, 0.28)',
+        borderRadius:
+        theme.radius.full,
         backgroundColor:
-        theme.colors.owned,
+            'rgba(148, 163, 184, 0.14)',
     },
-
     copyBadgeRepeated: {
+        borderColor:
+            'rgba(148, 163, 184, 0.38)',
         backgroundColor:
-            'rgba(53, 201, 111, 0.86)',
+            'rgba(148, 163, 184, 0.20)',
     },
 
     copyText: {
@@ -817,6 +818,15 @@ const styles = StyleSheet.create({
         theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.bold,
-        color: theme.colors.textPrimary,
+        color: '#CBD5E1',
+    },
+    standardTypeBadge: {
+        borderColor:
+            'rgba(148, 163, 184, 0.30)',
+        backgroundColor:
+            'rgba(148, 163, 184, 0.14)',
+    },
+    standardTypeText: {
+        color: '#CBD5E1',
     },
 });
