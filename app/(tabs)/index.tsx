@@ -1,23 +1,51 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import albumData from '@/assets/data/album.json';
 import { theme } from '@/constants/theme';
+import { albumCatalogue } from '@/data/albumCatalogue';
+import { getAlbumSummary } from '@/utils/albumStats';
+
+const summary = getAlbumSummary(albumCatalogue);
 
 export default function AlbumScreen() {
-    const totalSections = albumData.sections.length;
-
-    const totalStickers = albumData.sections.reduce(
-        (total, section) => total + section.stickers.length,
-        0
-    );
-
     return (
         <View style={styles.screen}>
-            <Text style={styles.eyebrow}>WORLD CUP 2026</Text>
-            <Text style={styles.title}>My Album</Text>
+            <Text style={styles.eyebrow}>
+                WORLD CUP 2026
+            </Text>
 
-            <Text style={styles.description}>
-                {totalSections} sections and {totalStickers} stickers loaded.
+            <Text style={styles.title}>
+                {albumCatalogue.name}
+            </Text>
+
+            <View style={styles.summaryCard}>
+                <View style={styles.summaryItem}>
+                    <Text style={styles.value}>
+                        {summary.totalSections}
+                    </Text>
+                    <Text style={styles.label}>Sections</Text>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.summaryItem}>
+                    <Text style={styles.value}>
+                        {summary.totalStickers}
+                    </Text>
+                    <Text style={styles.label}>Stickers</Text>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.summaryItem}>
+                    <Text style={styles.value}>
+                        {summary.foilStickers}
+                    </Text>
+                    <Text style={styles.label}>Foils</Text>
+                </View>
+            </View>
+
+            <Text style={styles.version}>
+                Catalogue version {albumCatalogue.version}
             </Text>
         </View>
     );
@@ -39,15 +67,51 @@ const styles = StyleSheet.create({
     },
 
     title: {
-        marginTop: theme.spacing.xs,
+        marginTop: theme.spacing.sm,
         fontSize: theme.typography.sizes.display,
+        fontWeight: theme.typography.weights.bold,
+        lineHeight: 42,
+        color: theme.colors.textPrimary,
+    },
+
+    summaryCard: {
+        marginTop: theme.spacing.xl,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: theme.spacing.xl,
+        paddingHorizontal: theme.spacing.lg,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        borderRadius: theme.radius.lg,
+        backgroundColor: theme.colors.surface,
+    },
+
+    summaryItem: {
+        flex: 1,
+        alignItems: 'center',
+    },
+
+    value: {
+        fontSize: theme.typography.sizes.xxl,
         fontWeight: theme.typography.weights.bold,
         color: theme.colors.textPrimary,
     },
 
-    description: {
-        marginTop: theme.spacing.md,
-        fontSize: theme.typography.sizes.md,
+    label: {
+        marginTop: theme.spacing.xs,
+        fontSize: theme.typography.sizes.xs,
         color: theme.colors.textSecondary,
+    },
+
+    divider: {
+        width: 1,
+        height: 42,
+        backgroundColor: theme.colors.border,
+    },
+
+    version: {
+        marginTop: theme.spacing.lg,
+        fontSize: theme.typography.sizes.xs,
+        color: theme.colors.textMuted,
     },
 });
