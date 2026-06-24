@@ -1,9 +1,31 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import {
+    ActivityIndicator,
+    StyleSheet,
+    View,
+} from 'react-native';
 
 import { theme } from '@/constants/theme';
+import { StickerProvider } from '@/context/StickerProvider';
+import { useStickers } from '@/hooks/useStickers';
 
-export default function RootLayout() {
+function AppNavigator() {
+    const { isHydrated } = useStickers();
+
+    if (!isHydrated) {
+        return (
+            <View style={styles.loadingScreen}>
+                <StatusBar style="light" />
+
+                <ActivityIndicator
+                    size="large"
+                    color={theme.colors.gold}
+                />
+            </View>
+        );
+    }
+
     return (
         <>
             <StatusBar style="light" />
@@ -12,7 +34,8 @@ export default function RootLayout() {
                 screenOptions={{
                     headerShown: false,
                     contentStyle: {
-                        backgroundColor: theme.colors.background,
+                        backgroundColor:
+                        theme.colors.background,
                     },
                 }}
             >
@@ -21,3 +44,20 @@ export default function RootLayout() {
         </>
     );
 }
+
+export default function RootLayout() {
+    return (
+        <StickerProvider>
+            <AppNavigator />
+        </StickerProvider>
+    );
+}
+
+const styles = StyleSheet.create({
+    loadingScreen: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.colors.background,
+    },
+});
