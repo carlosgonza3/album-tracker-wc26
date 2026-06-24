@@ -1,71 +1,17 @@
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import {
-    ActivityIndicator,
-    StyleSheet,
-    View,
-} from 'react-native';
-
-import { theme } from '@/constants/theme';
-import { StickerProvider } from '@/context/StickerProvider';
-import { useStickers } from '@/hooks/useStickers';
-
-import { SettingsProvider } from '@/context/SettingsProvider';
-
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-function AppNavigator() {
-    const { isHydrated } = useStickers();
-
-    if (!isHydrated) {
-        return (
-            <View style={styles.loadingScreen}>
-                <StatusBar style="light" />
-
-                <ActivityIndicator
-                    size="large"
-                    color={theme.colors.gold}
-                />
-            </View>
-        );
-    }
-
-    return (
-        <>
-            <StatusBar style="light" />
-
-            <Stack
-                screenOptions={{
-                    headerShown: false,
-                    contentStyle: {
-                        backgroundColor:
-                        theme.colors.background,
-                    },
-                }}
-            >
-                <Stack.Screen name="(tabs)" />
-            </Stack>
-        </>
-    );
-}
+import { SettingsProvider } from '@/context/SettingsProvider';
+import { StickerProvider } from '@/context/StickerProvider';
 
 export default function RootLayout() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SettingsProvider>
                 <StickerProvider>
-                    <AppNavigator />
+                    <Stack screenOptions={{ headerShown: false }} />
                 </StickerProvider>
             </SettingsProvider>
         </GestureHandlerRootView>
     );
 }
-
-const styles = StyleSheet.create({
-    loadingScreen: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.colors.background,
-    },
-});

@@ -1,9 +1,22 @@
 import * as Haptics from 'expo-haptics';
-import { StyleSheet, Text, View } from 'react-native';
+
+import {
+    memo,
+    useCallback,
+    useMemo,
+} from 'react';
+
+import {
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
+
 import {
     Gesture,
     GestureDetector,
 } from 'react-native-gesture-handler';
+
 import Animated, {
     interpolate,
     runOnJS,
@@ -20,8 +33,20 @@ import type { StickerWithState } from '@/types/album';
 interface StickerCardProps {
     sticker: StickerWithState;
     invertSwipeDirections: boolean;
-    onIncrement: () => void;
-    onDecrement: () => void;
+
+    /*
+     * These callbacks receive the sticker ID directly.
+     * StickerGrid can therefore pass the same stable
+     * functions to every card without creating inline
+     * closures for each render.
+     */
+    onIncrementSticker: (
+        stickerId: string
+    ) => void;
+
+    onDecrementSticker: (
+        stickerId: string
+    ) => void;
 }
 
 const SWIPE_ACTIVATION_DELAY = 165;
@@ -35,13 +60,26 @@ const SPRING_CONFIG = {
     overshootClamping: true,
 };
 
-export function StickerCard({
-                                sticker,
-                                invertSwipeDirections,
-                                onIncrement,
-                                onDecrement,
-                            }: StickerCardProps) {
+function triggerActivationHaptic() {
+    void Haptics.impactAsync(
+        Haptics.ImpactFeedbackStyle.Medium
+    );
+}
+
+function triggerThresholdHaptic() {
+    void Haptics.impactAsync(
+        Haptics.ImpactFeedbackStyle.Rigid
+    );
+}
+
+function StickerCardComponent({
+                                  sticker,
+                                  invertSwipeDirections,
+                                  onIncrementSticker,
+                                  onDecrementSticker,
+                              }: StickerCardProps) {
     const translateX = useSharedValue(0);
+
     const confirmedDirection =
         useSharedValue<-1 | 0 | 1>(0);
 
@@ -51,151 +89,170 @@ export function StickerCard({
     const activationPulse =
         useSharedValue(0);
 
-    const isMissing = sticker.copies === 0;
-    const isOwned = sticker.copies === 1;
-    const isRepeated = sticker.copies >= 2;
+    const {
+        id,
+        name,
+        type,
+        copies,
+    } = sticker;
 
-    function triggerActivationHaptic() {
-        void Haptics.impactAsync(
-            Haptics.ImpactFeedbackStyle.Medium
-        );
-    }
+    const isMissing = copies === 0;
+    const isOwned = copies === 1;
+    const isRepeated = copies >= 2;
 
-    function triggerThresholdHaptic() {
-        void Haptics.impactAsync(
-            Haptics.ImpactFeedbackStyle.Rigid
-        );
-    }
+    const applyIncrement = useCallback(() => {
+        onIncrementSticker(id);
+    }, [
+        id,
+        onIncrementSticker,
+    ]);
 
-    function applyIncrement() {
-        onIncrement();
-    }
-
-    function applyDecrement() {
-        if (sticker.copies > 0) {
-            onDecrement();
+    const applyDecrement = useCallback(() => {
+        if (copies > 0) {
+            onDecrementSticker(id);
         }
-    }
+    }, [
+        copies,
+        id,
+        onDecrementSticker,
+    ]);
 
-    const resetGesture = () => {
-        'worklet';
-
-        confirmedDirection.value = 0;
-        isGestureActivated.value = false;
-
-        translateX.value = withSpring(
-            0,
-            SPRING_CONFIG
-        );
-    };
-
-    const panGesture = Gesture.Pan()
-        .activateAfterLongPress(
-            SWIPE_ACTIVATION_DELAY
-        )
-        .activeOffsetX([-8, 8])
-        .failOffsetY([-12, 12])
-
-        .onStart(() => {
-            isGestureActivated.value = true;
-
-            activationPulse.value = withSequence(
-                withTiming(1, {
-                    duration: 90,
-                }),
-                withTiming(0, {
-                    duration: 170,
-                })
-            );
-
-            runOnJS(triggerActivationHaptic)();
-        })
-
-        .onUpdate((event) => {
-            let minimumTranslation =
-                -MAX_TRANSLATION;
-
-            let maximumTranslation =
-                MAX_TRANSLATION;
-
-            /*
-             * When the count is zero, block the direction
-             * that would remove a copy.
-             */
-            if (sticker.copies === 0) {
-                if (invertSwipeDirections) {
-                    maximumTranslation = 0;
-                } else {
-                    minimumTranslation = 0;
-                }
-            }
-
-            translateX.value = Math.max(
-                minimumTranslation,
-                Math.min(
-                    maximumTranslation,
-                    event.translationX
+    /*
+     * The gesture object is recreated only when this
+     * card's actionable data actually changes.
+     */
+    const panGesture = useMemo(
+        () =>
+            Gesture.Pan()
+                .activateAfterLongPress(
+                    SWIPE_ACTIVATION_DELAY
                 )
-            );
+                .minDistance(8)
+                .activeOffsetX([-10, 10])
+                .failOffsetY([-8, 8])
+                .shouldCancelWhenOutside(true)
 
-            const reachedRightThreshold =
-                translateX.value >=
-                SWIPE_THRESHOLD;
+                .onStart(() => {
+                    isGestureActivated.value = true;
 
-            const reachedLeftThreshold =
-                translateX.value <=
-                -SWIPE_THRESHOLD;
+                    activationPulse.value =
+                        withSequence(
+                            withTiming(1, {
+                                duration: 90,
+                            }),
+                            withTiming(0, {
+                                duration: 170,
+                            })
+                        );
 
-            const nextDirection: -1 | 0 | 1 =
-                reachedRightThreshold
-                    ? 1
-                    : reachedLeftThreshold
-                        ? -1
-                        : 0;
+                    runOnJS(
+                        triggerActivationHaptic
+                    )();
+                })
 
-            /*
-             * Trigger one crisp haptic when entering
-             * an actionable direction.
-             */
-            if (
-                nextDirection !== 0 &&
-                nextDirection !==
-                confirmedDirection.value
-            ) {
-                runOnJS(triggerThresholdHaptic)();
-            }
+                .onUpdate((event) => {
+                    let minimumTranslation =
+                        -MAX_TRANSLATION;
 
-            confirmedDirection.value =
-                nextDirection;
-        })
+                    let maximumTranslation =
+                        MAX_TRANSLATION;
 
-        .onEnd(() => {
-            const direction =
-                confirmedDirection.value;
+                    /*
+                     * A missing sticker cannot be decremented,
+                     * so block the removal direction.
+                     */
+                    if (copies === 0) {
+                        if (invertSwipeDirections) {
+                            maximumTranslation = 0;
+                        } else {
+                            minimumTranslation = 0;
+                        }
+                    }
 
-            const shouldIncrement =
-                invertSwipeDirections
-                    ? direction === -1
-                    : direction === 1;
+                    translateX.value = Math.max(
+                        minimumTranslation,
+                        Math.min(
+                            maximumTranslation,
+                            event.translationX
+                        )
+                    );
 
-            const shouldDecrement =
-                invertSwipeDirections
-                    ? direction === 1
-                    : direction === -1;
+                    const reachedRightThreshold =
+                        translateX.value >=
+                        SWIPE_THRESHOLD;
 
-            if (shouldIncrement) {
-                runOnJS(applyIncrement)();
-            } else if (
-                shouldDecrement &&
-                sticker.copies > 0
-            ) {
-                runOnJS(applyDecrement)();
-            }
-        })
+                    const reachedLeftThreshold =
+                        translateX.value <=
+                        -SWIPE_THRESHOLD;
 
-        .onFinalize(() => {
-            resetGesture();
-        });
+                    const nextDirection:
+                        | -1
+                        | 0
+                        | 1 =
+                        reachedRightThreshold
+                            ? 1
+                            : reachedLeftThreshold
+                                ? -1
+                                : 0;
+
+                    if (
+                        nextDirection !== 0 &&
+                        nextDirection !==
+                        confirmedDirection.value
+                    ) {
+                        runOnJS(
+                            triggerThresholdHaptic
+                        )();
+                    }
+
+                    confirmedDirection.value =
+                        nextDirection;
+                })
+
+                .onEnd(() => {
+                    const direction =
+                        confirmedDirection.value;
+
+                    const shouldIncrement =
+                        invertSwipeDirections
+                            ? direction === -1
+                            : direction === 1;
+
+                    const shouldDecrement =
+                        invertSwipeDirections
+                            ? direction === 1
+                            : direction === -1;
+
+                    if (shouldIncrement) {
+                        runOnJS(applyIncrement)();
+                    } else if (
+                        shouldDecrement &&
+                        copies > 0
+                    ) {
+                        runOnJS(applyDecrement)();
+                    }
+                })
+
+                .onFinalize(() => {
+                    confirmedDirection.value = 0;
+                    isGestureActivated.value = false;
+
+                    translateX.value = withSpring(
+                        0,
+                        SPRING_CONFIG
+                    );
+                }),
+        [
+            activationPulse,
+            applyDecrement,
+            applyIncrement,
+            confirmedDirection,
+            copies,
+            invertSwipeDirections,
+            isGestureActivated,
+            translateX,
+        ]
+    );
 
     const cardAnimatedStyle =
         useAnimatedStyle(() => {
@@ -203,11 +260,12 @@ export function StickerCard({
                 translateX.value
             );
 
-            const activationScale = interpolate(
-                activationPulse.value,
-                [0, 1],
-                [1, 1.035]
-            );
+            const activationScale =
+                interpolate(
+                    activationPulse.value,
+                    [0, 1],
+                    [1, 1.035]
+                );
 
             const dragScale = interpolate(
                 distance,
@@ -226,11 +284,13 @@ export function StickerCard({
 
                 transform: [
                     {
-                        translateX: translateX.value,
+                        translateX:
+                        translateX.value,
                     },
                     {
                         scale:
-                            activationScale * dragScale,
+                            activationScale *
+                            dragScale,
                     },
                 ],
 
@@ -305,8 +365,10 @@ export function StickerCard({
 
     const decrementActionStyle =
         useAnimatedStyle(() => {
-            if (sticker.copies === 0) {
-                return { opacity: 0 };
+            if (copies === 0) {
+                return {
+                    opacity: 0,
+                };
             }
 
             const opacity =
@@ -375,7 +437,8 @@ export function StickerCard({
                         : styles.actionLeft,
                     isMissing &&
                     styles.actionMissing,
-                    isOwned && styles.actionOwned,
+                    isOwned &&
+                    styles.actionOwned,
                     isRepeated &&
                     styles.actionRepeated,
                     incrementActionStyle,
@@ -389,12 +452,12 @@ export function StickerCard({
                     </Text>
 
                     <Text style={styles.actionLabel}>
-                        Add copy
+                        Add New
                     </Text>
                 </Animated.View>
             </Animated.View>
 
-            {sticker.copies > 0 && (
+            {copies > 0 && (
                 <Animated.View
                     pointerEvents="none"
                     style={[
@@ -415,12 +478,16 @@ export function StickerCard({
                             styles.removeContent,
                         ]}
                     >
-                        <Text style={styles.actionSymbol}>
+                        <Text
+                            style={styles.actionSymbol}
+                        >
                             −1
                         </Text>
 
-                        <Text style={styles.actionLabel}>
-                            Remove copy
+                        <Text
+                            style={styles.actionLabel}
+                        >
+                            Remove One
                         </Text>
                     </Animated.View>
                 </Animated.View>
@@ -438,12 +505,12 @@ export function StickerCard({
                 <Animated.View
                     accessible
                     accessibilityRole="adjustable"
-                    accessibilityLabel={`${sticker.id}, ${sticker.name}`}
+                    accessibilityLabel={`${id}, ${name}`}
                     accessibilityValue={{
-                        text: `${sticker.copies} copies`,
+                        text: `${copies} copies`,
                     }}
                     accessibilityHint={
-                        sticker.copies === 0
+                        copies === 0
                             ? `${addDirectionText} to add a copy`
                             : `${addDirectionText} to add a copy or ${removeDirectionText} to remove one`
                     }
@@ -451,7 +518,8 @@ export function StickerCard({
                         styles.card,
                         isMissing &&
                         styles.cardMissing,
-                        isOwned && styles.cardOwned,
+                        isOwned &&
+                        styles.cardOwned,
                         isRepeated &&
                         styles.cardRepeated,
                         cardAnimatedStyle,
@@ -459,10 +527,10 @@ export function StickerCard({
                 >
                     <View style={styles.topRow}>
                         <Text style={styles.id}>
-                            {sticker.id}
+                            {id}
                         </Text>
 
-                        {sticker.type === 'foil' && (
+                        {type === 'foil' && (
                             <View style={styles.foilBadge}>
                                 <Text style={styles.foilText}>
                                     FOIL
@@ -475,7 +543,7 @@ export function StickerCard({
                         numberOfLines={2}
                         style={styles.name}
                     >
-                        {sticker.name}
+                        {name}
                     </Text>
 
                     <View style={styles.footer}>
@@ -495,7 +563,7 @@ export function StickerCard({
                                     : 'Repeated'}
                         </Text>
 
-                        {sticker.copies > 0 && (
+                        {copies > 0 && (
                             <View
                                 style={[
                                     styles.copyBadge,
@@ -503,8 +571,10 @@ export function StickerCard({
                                     styles.copyBadgeRepeated,
                                 ]}
                             >
-                                <Text style={styles.copyText}>
-                                    ×{sticker.copies}
+                                <Text
+                                    style={styles.copyText}
+                                >
+                                    ×{copies}
                                 </Text>
                             </View>
                         )}
@@ -514,6 +584,40 @@ export function StickerCard({
         </View>
     );
 }
+
+/*
+ * Compare only values that affect this card.
+ *
+ * When another sticker changes, this card keeps the
+ * same metadata, count and callback identities, so
+ * React skips its render completely.
+ */
+function areStickerCardPropsEqual(
+    previous: StickerCardProps,
+    next: StickerCardProps
+): boolean {
+    return (
+        previous.sticker.id ===
+        next.sticker.id &&
+        previous.sticker.name ===
+        next.sticker.name &&
+        previous.sticker.type ===
+        next.sticker.type &&
+        previous.sticker.copies ===
+        next.sticker.copies &&
+        previous.invertSwipeDirections ===
+        next.invertSwipeDirections &&
+        previous.onIncrementSticker ===
+        next.onIncrementSticker &&
+        previous.onDecrementSticker ===
+        next.onDecrementSticker
+    );
+}
+
+export const StickerCard = memo(
+    StickerCardComponent,
+    areStickerCardPropsEqual
+);
 
 const styles = StyleSheet.create({
     swipeContainer: {
@@ -577,7 +681,8 @@ const styles = StyleSheet.create({
     },
 
     actionSymbol: {
-        fontSize: theme.typography.sizes.lg,
+        fontSize:
+        theme.typography.sizes.lg,
         fontWeight:
         theme.typography.weights.bold,
         color: theme.colors.textPrimary,
@@ -585,7 +690,8 @@ const styles = StyleSheet.create({
 
     actionLabel: {
         marginTop: 2,
-        fontSize: theme.typography.sizes.xs,
+        fontSize:
+        theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.semibold,
         color: theme.colors.textSecondary,
@@ -604,7 +710,8 @@ const styles = StyleSheet.create({
 
     cardMissing: {
         borderColor: theme.colors.border,
-        backgroundColor: theme.colors.missing,
+        backgroundColor:
+        theme.colors.missing,
     },
 
     cardOwned: {
@@ -631,7 +738,8 @@ const styles = StyleSheet.create({
 
     id: {
         flexShrink: 1,
-        fontSize: theme.typography.sizes.md,
+        fontSize:
+        theme.typography.sizes.md,
         fontWeight:
         theme.typography.weights.bold,
         color: theme.colors.textPrimary,
@@ -655,7 +763,8 @@ const styles = StyleSheet.create({
 
     name: {
         marginTop: theme.spacing.sm,
-        fontSize: theme.typography.sizes.xs,
+        fontSize:
+        theme.typography.sizes.xs,
         lineHeight: 16,
         color: theme.colors.textSecondary,
     },
@@ -672,7 +781,8 @@ const styles = StyleSheet.create({
 
     status: {
         flexShrink: 1,
-        fontSize: theme.typography.sizes.xs,
+        fontSize:
+        theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.semibold,
         color: theme.colors.missingText,
@@ -693,7 +803,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 7,
         paddingVertical: 4,
         borderRadius: theme.radius.full,
-        backgroundColor: theme.colors.owned,
+        backgroundColor:
+        theme.colors.owned,
     },
 
     copyBadgeRepeated: {
@@ -702,7 +813,8 @@ const styles = StyleSheet.create({
     },
 
     copyText: {
-        fontSize: theme.typography.sizes.xs,
+        fontSize:
+        theme.typography.sizes.xs,
         fontWeight:
         theme.typography.weights.bold,
         color: theme.colors.textPrimary,
