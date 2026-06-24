@@ -36,17 +36,7 @@ export function getExtraCopies(copies: number): number {
 export function getNextStickerCopies(
     currentCopies: number
 ): number {
-    const copies = normalizeCopies(currentCopies);
-
-    if (copies === 0) {
-        return 1;
-    }
-
-    if (copies === 1) {
-        return 2;
-    }
-
-    return 0;
+    return normalizeCopies(currentCopies) + 1;
 }
 
 export function attachStickerState(

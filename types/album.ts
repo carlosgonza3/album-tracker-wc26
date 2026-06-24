@@ -50,3 +50,18 @@ export interface SectionSummary {
     foilStickers: number;
     regularStickers: number;
 }
+
+export interface CollectionSummary {
+    totalStickers: number;
+    uniqueOwned: number;
+    missingStickers: number;
+    repeatedStickerTypes: number;
+    totalExtraCopies: number;
+    completionPercentage: number;
+}
+
+export interface SectionCollectionSummary
+    extends CollectionSummary {
+    sectionId: string;
+    sectionName: string;
+}

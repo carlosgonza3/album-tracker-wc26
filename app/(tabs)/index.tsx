@@ -1,52 +1,147 @@
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AlbumHeader } from '@/components/album/AlbumHeader';
+import { SectionProgress } from '@/components/album/SectionProgress';
+import { SectionSelector } from '@/components/album/SectionSelector';
+import { StickerGrid } from '@/components/album/StickerGrid';
 import { theme } from '@/constants/theme';
-import { albumCatalogue } from '@/data/albumCatalogue';
-import { getAlbumSummary } from '@/utils/albumStats';
-
-const summary = getAlbumSummary(albumCatalogue);
+import {
+    albumCatalogue,
+    sectionsById,
+} from '@/data/albumCatalogue';
+import { useStickers } from '@/hooks/useStickers';
+import {
+    getCollectionSummary,
+    getSectionCollectionSummary,
+} from '@/utils/albumStats';
+import { attachStickerState } from '@/utils/stickerState';
 
 export default function AlbumScreen() {
-    return (
-        <View style={styles.screen}>
-            <Text style={styles.eyebrow}>
-                WORLD CUP 2026
-            </Text>
+    const insets = useSafeAreaInsets();
 
-            <Text style={styles.title}>
-                {albumCatalogue.name}
-            </Text>
+    const {
+        collection,
+        incrementSticker,
+    } = useStickers();
 
-            <View style={styles.summaryCard}>
-                <View style={styles.summaryItem}>
-                    <Text style={styles.value}>
-                        {summary.totalSections}
+    const firstSectionId =
+        albumCatalogue.sections[0]?.id ?? '';
+
+    const [
+        selectedSectionId,
+        setSelectedSectionId,
+    ] = useState(firstSectionId);
+
+    const selectedSection =
+        sectionsById.get(selectedSectionId) ??
+        albumCatalogue.sections[0];
+
+    const albumSummary = useMemo(
+        () =>
+            getCollectionSummary(
+                albumCatalogue,
+                collection
+            ),
+        [collection]
+    );
+
+    const sectionSummary = useMemo(() => {
+        if (!selectedSection) {
+            return undefined;
+        }
+
+        return getSectionCollectionSummary(
+            albumCatalogue,
+            selectedSection.id,
+            collection
+        );
+    }, [collection, selectedSection]);
+
+    const sectionStickers = useMemo(() => {
+        if (!selectedSection) {
+            return [];
+        }
+
+        return selectedSection.stickers.map(
+            (sticker) =>
+                attachStickerState(
+                    {
+                        ...sticker,
+                        sectionId: selectedSection.id,
+                        sectionName: selectedSection.name,
+                        federation: selectedSection.federation,
+                    },
+                    collection
+                )
+        );
+    }, [collection, selectedSection]);
+
+    const header = (
+        <View style={styles.header}>
+            <AlbumHeader
+                owned={albumSummary.uniqueOwned}
+                total={albumSummary.totalStickers}
+                percentage={
+                    albumSummary.completionPercentage
+                }
+            />
+
+            <View style={styles.sectionBrowser}>
+                <View style={styles.sectionHeadingRow}>
+                    <Text style={styles.sectionHeading}>
+                        Sections
                     </Text>
-                    <Text style={styles.label}>Sections</Text>
+
+                    <Text style={styles.sectionCount}>
+                        {albumCatalogue.sections.length}
+                    </Text>
                 </View>
 
-                <View style={styles.divider} />
-
-                <View style={styles.summaryItem}>
-                    <Text style={styles.value}>
-                        {summary.totalStickers}
-                    </Text>
-                    <Text style={styles.label}>Stickers</Text>
-                </View>
-
-                <View style={styles.divider} />
-
-                <View style={styles.summaryItem}>
-                    <Text style={styles.value}>
-                        {summary.foilStickers}
-                    </Text>
-                    <Text style={styles.label}>Foils</Text>
-                </View>
+                <SectionSelector
+                    sections={albumCatalogue.sections}
+                    selectedSectionId={selectedSectionId}
+                    onSelectSection={setSelectedSectionId}
+                />
             </View>
 
-            <Text style={styles.version}>
-                Catalogue version {albumCatalogue.version}
-            </Text>
+            {selectedSection && sectionSummary && (
+                <SectionProgress
+                    name={selectedSection.name}
+                    federation={selectedSection.federation}
+                    owned={sectionSummary.uniqueOwned}
+                    total={sectionSummary.totalStickers}
+                    percentage={
+                        sectionSummary.completionPercentage
+                    }
+                />
+            )}
+
+            <View style={styles.gridHeadingRow}>
+                <Text style={styles.gridHeading}>
+                    Stickers
+                </Text>
+
+                <Text style={styles.gridCount}>
+                    {sectionStickers.length}
+                </Text>
+            </View>
+        </View>
+    );
+
+    return (
+        <View style={styles.screen}>
+            <StickerGrid
+                stickers={sectionStickers}
+                onPressSticker={(stickerId) => {
+                    void incrementSticker(stickerId);
+                }}
+                header={header}
+                contentTopPadding={
+                    insets.top + theme.spacing.lg
+                }
+            />
         </View>
     );
 }
@@ -54,64 +149,51 @@ export default function AlbumScreen() {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        justifyContent: 'center',
-        padding: theme.spacing.xl,
         backgroundColor: theme.colors.background,
     },
 
-    eyebrow: {
-        fontSize: theme.typography.sizes.xs,
-        fontWeight: theme.typography.weights.bold,
-        letterSpacing: 1.8,
-        color: theme.colors.gold,
+    header: {
+        marginBottom: theme.spacing.md,
     },
 
-    title: {
-        marginTop: theme.spacing.sm,
-        fontSize: theme.typography.sizes.display,
-        fontWeight: theme.typography.weights.bold,
-        lineHeight: 42,
-        color: theme.colors.textPrimary,
-    },
-
-    summaryCard: {
+    sectionBrowser: {
         marginTop: theme.spacing.xl,
+    },
+
+    sectionHeadingRow: {
+        marginBottom: theme.spacing.md,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: theme.spacing.xl,
-        paddingHorizontal: theme.spacing.lg,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        borderRadius: theme.radius.lg,
-        backgroundColor: theme.colors.surface,
+        justifyContent: 'space-between',
     },
 
-    summaryItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-
-    value: {
-        fontSize: theme.typography.sizes.xxl,
+    sectionHeading: {
+        fontSize: theme.typography.sizes.lg,
         fontWeight: theme.typography.weights.bold,
         color: theme.colors.textPrimary,
     },
 
-    label: {
-        marginTop: theme.spacing.xs,
-        fontSize: theme.typography.sizes.xs,
+    sectionCount: {
+        fontSize: theme.typography.sizes.sm,
         color: theme.colors.textSecondary,
     },
 
-    divider: {
-        width: 1,
-        height: 42,
-        backgroundColor: theme.colors.border,
+    gridHeadingRow: {
+        marginTop: theme.spacing.xl,
+        marginBottom: theme.spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
 
-    version: {
-        marginTop: theme.spacing.lg,
-        fontSize: theme.typography.sizes.xs,
-        color: theme.colors.textMuted,
+    gridHeading: {
+        fontSize: theme.typography.sizes.lg,
+        fontWeight: theme.typography.weights.bold,
+        color: theme.colors.textPrimary,
+    },
+
+    gridCount: {
+        fontSize: theme.typography.sizes.sm,
+        color: theme.colors.textSecondary,
     },
 });

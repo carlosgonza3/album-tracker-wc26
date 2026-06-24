@@ -13,11 +13,14 @@ import {
     loadStickerCollection,
     saveStickerCollection,
 } from '@/services/stickerStorage';
+
 import type { StickerCollection } from '@/types/album';
+
 import {
     getNextStickerCopies,
     normalizeCopies,
 } from '@/utils/stickerState';
+
 
 interface StickerContextValue {
     collection: StickerCollection;
@@ -25,7 +28,7 @@ interface StickerContextValue {
     storageError: string | null;
 
     getCopies: (stickerId: string) => number;
-    cycleSticker: (stickerId: string) => Promise<void>;
+    incrementSticker: (stickerId: string) => Promise<void>;
     setStickerCopies: (
         stickerId: string,
         copies: number
@@ -52,12 +55,13 @@ export function StickerProvider({
     const [storageError, setStorageError] =
         useState<string | null>(null);
 
-    function updateCollection(
-        nextCollection: StickerCollection
-    ) {
-        collectionRef.current = nextCollection;
-        setCollection(nextCollection);
-    }
+    const updateCollection = useCallback(
+        (nextCollection: StickerCollection) => {
+            collectionRef.current = nextCollection;
+            setCollection(nextCollection);
+        },
+        []
+    );
 
     useEffect(() => {
         async function hydrateCollection() {
@@ -74,6 +78,7 @@ export function StickerProvider({
                 );
 
                 updateCollection({});
+
                 setStorageError(
                     'Your saved collection could not be loaded.'
                 );
@@ -83,7 +88,7 @@ export function StickerProvider({
         }
 
         void hydrateCollection();
-    }, []);
+    }, [updateCollection]);
 
     const persistCollection = useCallback(
         async (
@@ -94,9 +99,7 @@ export function StickerProvider({
             setStorageError(null);
 
             try {
-                await saveStickerCollection(
-                    nextCollection
-                );
+                await saveStickerCollection(nextCollection);
             } catch (error) {
                 console.error(
                     'Failed to persist sticker collection:',
@@ -106,7 +109,7 @@ export function StickerProvider({
                 setStorageError(errorMessage);
             }
         },
-        []
+        [updateCollection]
     );
 
     const getCopies = useCallback(
@@ -116,7 +119,7 @@ export function StickerProvider({
         []
     );
 
-    const cycleSticker = useCallback(
+    const incrementSticker = useCallback(
         async (stickerId: string) => {
             const currentCollection =
                 collectionRef.current;
@@ -127,16 +130,10 @@ export function StickerProvider({
             const nextCopies =
                 getNextStickerCopies(currentCopies);
 
-            const nextCollection = {
+            const nextCollection: StickerCollection = {
                 ...currentCollection,
+                [stickerId]: nextCopies,
             };
-
-            if (nextCopies === 0) {
-                delete nextCollection[stickerId];
-            } else {
-                nextCollection[stickerId] =
-                    nextCopies;
-            }
 
             await persistCollection(
                 nextCollection,
@@ -154,7 +151,7 @@ export function StickerProvider({
             const normalizedCopies =
                 normalizeCopies(copies);
 
-            const nextCollection = {
+            const nextCollection: StickerCollection = {
                 ...collectionRef.current,
             };
 
@@ -191,7 +188,7 @@ export function StickerProvider({
                 );
             }
         },
-        []
+        [updateCollection]
     );
 
     const clearStorageError = useCallback(() => {
@@ -204,7 +201,7 @@ export function StickerProvider({
             isHydrated,
             storageError,
             getCopies,
-            cycleSticker,
+            incrementSticker,
             setStickerCopies,
             resetCollection,
             clearStorageError,
@@ -214,7 +211,7 @@ export function StickerProvider({
             isHydrated,
             storageError,
             getCopies,
-            cycleSticker,
+            incrementSticker,
             setStickerCopies,
             resetCollection,
             clearStorageError,

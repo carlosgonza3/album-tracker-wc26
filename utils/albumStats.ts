@@ -1,37 +1,70 @@
 import type {
     AlbumCatalogue,
     AlbumSummary,
+    CollectionSummary,
+    SectionCollectionSummary,
     SectionSummary,
+    StickerCollection,
 } from '@/types/album';
 
-export function getAlbumSummary(
-    catalogue: AlbumCatalogue
-): AlbumSummary {
+export function getCollectionSummary(
+
+    catalogue: AlbumCatalogue,
+    collection: StickerCollection
+
+): CollectionSummary {
+
     let totalStickers = 0;
-    let foilStickers = 0;
+    let uniqueOwned = 0;
+    let repeatedStickerTypes = 0;
+    let totalExtraCopies = 0;
 
     for (const section of catalogue.sections) {
-        totalStickers += section.stickers.length;
-
         for (const sticker of section.stickers) {
-            if (sticker.type === 'foil') {
-                foilStickers += 1;
+            totalStickers += 1;
+
+            const copies = Math.max(
+                0,
+                Math.floor(collection[sticker.id] ?? 0)
+            );
+
+            if (copies > 0) {
+                uniqueOwned += 1;
+            }
+
+            if (copies > 1) {
+                repeatedStickerTypes += 1;
+                totalExtraCopies += copies - 1;
             }
         }
     }
 
+    const missingStickers =
+        totalStickers - uniqueOwned;
+
+    const completionPercentage =
+        totalStickers === 0
+            ? 0
+            : (uniqueOwned / totalStickers) * 100;
+
     return {
-        totalSections: catalogue.sections.length,
         totalStickers,
-        foilStickers,
-        regularStickers: totalStickers - foilStickers,
+        uniqueOwned,
+        missingStickers,
+        repeatedStickerTypes,
+        totalExtraCopies,
+        completionPercentage,
     };
 }
 
-export function getSectionSummary(
+export function getSectionCollectionSummary(
+
     catalogue: AlbumCatalogue,
-    sectionId: string
-): SectionSummary | undefined {
+    sectionId: string,
+    collection: StickerCollection
+
+): SectionCollectionSummary | undefined {
+
     const section = catalogue.sections.find(
         (item) => item.id === sectionId
     );
@@ -40,16 +73,43 @@ export function getSectionSummary(
         return undefined;
     }
 
-    const foilStickers = section.stickers.filter(
-        (sticker) => sticker.type === 'foil'
-    ).length;
+    let uniqueOwned = 0;
+    let repeatedStickerTypes = 0;
+    let totalExtraCopies = 0;
+
+    for (const sticker of section.stickers) {
+        const copies = Math.max(
+            0,
+            Math.floor(collection[sticker.id] ?? 0)
+        );
+
+        if (copies > 0) {
+            uniqueOwned += 1;
+        }
+
+        if (copies > 1) {
+            repeatedStickerTypes += 1;
+            totalExtraCopies += copies - 1;
+        }
+    }
+
+    const totalStickers = section.stickers.length;
+    const missingStickers =
+        totalStickers - uniqueOwned;
+
+    const completionPercentage =
+        totalStickers === 0
+            ? 0
+            : (uniqueOwned / totalStickers) * 100;
 
     return {
         sectionId: section.id,
         sectionName: section.name,
-        totalStickers: section.stickers.length,
-        foilStickers,
-        regularStickers:
-            section.stickers.length - foilStickers,
+        totalStickers,
+        uniqueOwned,
+        missingStickers,
+        repeatedStickerTypes,
+        totalExtraCopies,
+        completionPercentage,
     };
 }
