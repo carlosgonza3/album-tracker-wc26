@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSettings } from '@/hooks/useSettings';
+
 import { AlbumHeader } from '@/components/album/AlbumHeader';
 import { SectionProgress } from '@/components/album/SectionProgress';
 import { SectionSelector } from '@/components/album/SectionSelector';
@@ -21,9 +23,12 @@ import { attachStickerState } from '@/utils/stickerState';
 export default function AlbumScreen() {
     const insets = useSafeAreaInsets();
 
+    const { settings } = useSettings();
+
     const {
         collection,
         incrementSticker,
+        decrementSticker,
     } = useStickers();
 
     const firstSectionId =
@@ -134,8 +139,14 @@ export default function AlbumScreen() {
         <View style={styles.screen}>
             <StickerGrid
                 stickers={sectionStickers}
-                onPressSticker={(stickerId) => {
+                invertSwipeDirections={
+                    settings.invertSwipeDirections
+                }
+                onIncrementSticker={(stickerId) => {
                     void incrementSticker(stickerId);
+                }}
+                onDecrementSticker={(stickerId) => {
+                    void decrementSticker(stickerId);
                 }}
                 header={header}
                 contentTopPadding={

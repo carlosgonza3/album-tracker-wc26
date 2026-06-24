@@ -10,6 +10,10 @@ import { theme } from '@/constants/theme';
 import { StickerProvider } from '@/context/StickerProvider';
 import { useStickers } from '@/hooks/useStickers';
 
+import { SettingsProvider } from '@/context/SettingsProvider';
+
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 function AppNavigator() {
     const { isHydrated } = useStickers();
 
@@ -47,9 +51,13 @@ function AppNavigator() {
 
 export default function RootLayout() {
     return (
-        <StickerProvider>
-            <AppNavigator />
-        </StickerProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <SettingsProvider>
+                <StickerProvider>
+                    <AppNavigator />
+                </StickerProvider>
+            </SettingsProvider>
+        </GestureHandlerRootView>
     );
 }
 

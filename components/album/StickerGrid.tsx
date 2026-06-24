@@ -11,14 +11,17 @@ import type { StickerWithState } from '@/types/album';
 
 interface StickerGridProps {
     stickers: StickerWithState[];
-    onPressSticker: (stickerId: string) => void;
+    invertSwipeDirections: boolean;
+    onIncrementSticker: (stickerId: string) => void;
+    onDecrementSticker: (stickerId: string) => void;
     header: React.ReactElement;
     contentTopPadding: number;
 }
-
 export function StickerGrid({
                                 stickers,
-                                onPressSticker,
+                                invertSwipeDirections,
+                                onIncrementSticker,
+                                onDecrementSticker,
                                 header,
                                 contentTopPadding,
                             }: StickerGridProps) {
@@ -50,8 +53,14 @@ export function StickerGrid({
             renderItem={({ item }) => (
                 <StickerCard
                     sticker={item}
-                    onPress={() =>
-                        onPressSticker(item.id)
+                    invertSwipeDirections={
+                        invertSwipeDirections
+                    }
+                    onIncrement={() =>
+                        onIncrementSticker(item.id)
+                    }
+                    onDecrement={() =>
+                        onDecrementSticker(item.id)
                     }
                 />
             )}

@@ -29,6 +29,7 @@ interface StickerContextValue {
 
     getCopies: (stickerId: string) => number;
     incrementSticker: (stickerId: string) => Promise<void>;
+    decrementSticker: (stickerId: string) => Promise<void>;
     setStickerCopies: (
         stickerId: string,
         copies: number
@@ -121,19 +122,42 @@ export function StickerProvider({
 
     const incrementSticker = useCallback(
         async (stickerId: string) => {
-            const currentCollection =
-                collectionRef.current;
-
-            const currentCopies =
-                currentCollection[stickerId] ?? 0;
-
-            const nextCopies =
-                getNextStickerCopies(currentCopies);
+            const currentCollection = collectionRef.current;
+            const currentCopies = currentCollection[stickerId] ?? 0;
+            const nextCopies = getNextStickerCopies(currentCopies);
 
             const nextCollection: StickerCollection = {
                 ...currentCollection,
                 [stickerId]: nextCopies,
             };
+
+            await persistCollection(
+                nextCollection,
+                'Your sticker change could not be saved.'
+            );
+        },
+        [persistCollection]
+    );
+
+    const decrementSticker = useCallback(
+        async (stickerId: string) => {
+            const currentCollection = collectionRef.current;
+            const currentCopies = currentCollection[stickerId] ?? 0;
+
+            if (currentCopies === 0) {
+                return;
+            }
+
+            const nextCopies = currentCopies - 1;
+            const nextCollection: StickerCollection = {
+                ...currentCollection,
+            };
+
+            if (nextCopies === 0) {
+                delete nextCollection[stickerId];
+            } else {
+                nextCollection[stickerId] = nextCopies;
+            }
 
             await persistCollection(
                 nextCollection,
@@ -202,6 +226,7 @@ export function StickerProvider({
             storageError,
             getCopies,
             incrementSticker,
+            decrementSticker,
             setStickerCopies,
             resetCollection,
             clearStorageError,
@@ -212,6 +237,7 @@ export function StickerProvider({
             storageError,
             getCopies,
             incrementSticker,
+            decrementSticker,
             setStickerCopies,
             resetCollection,
             clearStorageError,
