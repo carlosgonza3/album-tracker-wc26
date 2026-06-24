@@ -12,6 +12,7 @@ import {
     Animated,
     Pressable,
     SafeAreaView,
+    ScrollView,
     StyleSheet,
     Text,
     View,
@@ -26,14 +27,23 @@ import {
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
 import { useStickers } from '@/hooks/useStickers';
-import { getCollectionSummary } from '@/utils/albumStats';
+import type {
+    CollectionStatsSummary,
+    SectionCollectionSummary,
+} from '@/types/album';
+import {
+    getCollectionStatsSummary,
+    getCollectionSummary,
+} from '@/utils/albumStats';
 import {
     searchCollectionStickers,
     type CollectionFilter,
     type CollectionStickerResult,
 } from '@/utils/collectionSearch';
 
-type CollectionView = 'stickers' | 'stats';
+type CollectionView =
+    | 'stickers'
+    | 'stats';
 
 export default function CollectionScreen() {
     const router = useRouter();
@@ -63,12 +73,25 @@ export default function CollectionScreen() {
         [collection]
     );
 
+    const statsSummary = useMemo(
+        () =>
+            getCollectionStatsSummary(
+                albumCatalogue,
+                collection
+            ),
+        [collection]
+    );
+
     const filteredStickers = useMemo(
         () =>
-            searchCollectionStickers(collection, {
-                query,
-                filter: activeFilter,
-            }),
+            searchCollectionStickers(
+                collection,
+                {
+                    query,
+                    filter:
+                    activeFilter,
+                }
+            ),
         [
             collection,
             query,
@@ -79,10 +102,11 @@ export default function CollectionScreen() {
     const handleSelectQuickFilter = (
         filter: CollectionQuickFilter
     ) => {
-        setActiveFilter((currentFilter) =>
-            currentFilter === filter
-                ? 'all'
-                : filter
+        setActiveFilter(
+            (currentFilter) =>
+                currentFilter === filter
+                    ? 'all'
+                    : filter
         );
     };
 
@@ -101,12 +125,21 @@ export default function CollectionScreen() {
             params: {
                 sectionId:
                 sticker.sectionId,
+                openRequest:
+                    Date.now().toString(),
+            },
+        });
+    };
 
-                /*
-                 * Makes every press a distinct navigation
-                 * request, even when opening the same section
-                 * more than once.
-                 */
+    const handlePressSection = (
+        section:
+        SectionCollectionSummary
+    ) => {
+        router.navigate({
+            pathname: '/',
+            params: {
+                sectionId:
+                section.sectionId,
                 openRequest:
                     Date.now().toString(),
             },
@@ -118,7 +151,8 @@ export default function CollectionScreen() {
             <View style={styles.container}>
                 <CollapsibleArea
                     collapsed={
-                        activeView === 'stickers' &&
+                        activeView ===
+                        'stickers' &&
                         isHeaderCollapsed
                     }
                 >
@@ -127,10 +161,15 @@ export default function CollectionScreen() {
                             Collection
                         </Text>
 
-                        <Text style={styles.description}>
-                            Search your stickers, review missing
-                            cards, manage duplicates, and track
-                            your progress.
+                        <Text
+                            style={
+                                styles.description
+                            }
+                        >
+                            Search your stickers,
+                            review missing cards,
+                            manage duplicates, and
+                            track your progress.
                         </Text>
                     </View>
                 </CollapsibleArea>
@@ -171,9 +210,12 @@ export default function CollectionScreen() {
                     />
                 </View>
 
-                {activeView === 'stickers' ? (
+                {activeView ===
+                'stickers' ? (
                     <StickersView
-                        isHydrated={isHydrated}
+                        isHydrated={
+                            isHydrated
+                        }
                         isHeaderCollapsed={
                             isHeaderCollapsed
                         }
@@ -196,7 +238,9 @@ export default function CollectionScreen() {
                         tradeCopiesCount={
                             summary.totalExtraCopies
                         }
-                        onChangeQuery={setQuery}
+                        onChangeQuery={
+                            setQuery
+                        }
                         onChangeFilter={
                             setActiveFilter
                         }
@@ -212,15 +256,14 @@ export default function CollectionScreen() {
                     />
                 ) : (
                     <StatsView
-                        isHydrated={isHydrated}
-                        completionPercentage={
-                            summary.completionPercentage
+                        isHydrated={
+                            isHydrated
                         }
-                        uniqueOwned={
-                            summary.uniqueOwned
+                        stats={
+                            statsSummary
                         }
-                        totalStickers={
-                            summary.totalStickers
+                        onPressSection={
+                            handlePressSection
                         }
                     />
                 )}
@@ -244,23 +287,22 @@ function CollapsibleArea({
         )
     ).current;
 
-    /*
-     * Stores the largest natural height ever measured.
-     *
-     * Measurements produced while the wrapper is partially
-     * collapsed are smaller and must never replace this value.
-     */
-    const fullHeightRef = useRef(0);
+    const fullHeightRef =
+        useRef(0);
 
-    const [fullHeight, setFullHeight] =
-        useState(0);
+    const [
+        fullHeight,
+        setFullHeight,
+    ] = useState(0);
 
     useEffect(() => {
         progress.stopAnimation();
 
         Animated.timing(progress, {
-            toValue: collapsed ? 1 : 0,
-            duration: collapsed ? 210 : 280,
+            toValue:
+                collapsed ? 1 : 0,
+            duration:
+                collapsed ? 210 : 280,
             useNativeDriver: false,
         }).start();
     }, [
@@ -271,40 +313,49 @@ function CollapsibleArea({
     const animatedStyle =
         fullHeight > 0
             ? {
-                height: progress.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [
-                        fullHeight,
-                        0,
-                    ],
-                }),
+                height:
+                    progress.interpolate({
+                        inputRange: [
+                            0,
+                            1,
+                        ],
+                        outputRange: [
+                            fullHeight,
+                            0,
+                        ],
+                    }),
 
-                opacity: progress.interpolate({
-                    inputRange: [
-                        0,
-                        0.75,
-                        1,
-                    ],
-                    outputRange: [
-                        1,
-                        0.25,
-                        0,
-                    ],
-                }),
+                opacity:
+                    progress.interpolate({
+                        inputRange: [
+                            0,
+                            0.75,
+                            1,
+                        ],
+                        outputRange: [
+                            1,
+                            0.25,
+                            0,
+                        ],
+                    }),
 
                 transform: [
                     {
                         translateY:
-                            progress.interpolate({
-                                inputRange: [
-                                    0,
-                                    1,
-                                ],
-                                outputRange: [
-                                    0,
-                                    -10,
-                                ],
-                            }),
+                            progress.interpolate(
+                                {
+                                    inputRange:
+                                        [
+                                            0,
+                                            1,
+                                        ],
+                                    outputRange:
+                                        [
+                                            0,
+                                            -10,
+                                        ],
+                                }
+                            ),
                     },
                 ],
             }
@@ -313,7 +364,9 @@ function CollapsibleArea({
     return (
         <Animated.View
             pointerEvents={
-                collapsed ? 'none' : 'auto'
+                collapsed
+                    ? 'none'
+                    : 'auto'
             }
             style={[
                 styles.collapsibleArea,
@@ -326,15 +379,9 @@ function CollapsibleArea({
                 }
                 onLayout={(event) => {
                     const measuredHeight =
-                        event.nativeEvent.layout
-                            .height;
+                        event.nativeEvent
+                            .layout.height;
 
-                    /*
-                     * Only accept a larger measurement.
-                     *
-                     * This prevents a partially cropped height
-                     * from becoming the new expansion target.
-                     */
                     if (
                         measuredHeight >
                         fullHeightRef.current
@@ -398,7 +445,8 @@ interface StickersViewProps {
     isHeaderCollapsed: boolean;
     query: string;
     activeFilter: CollectionFilter;
-    stickers: CollectionStickerResult[];
+    stickers:
+        CollectionStickerResult[];
     missingCount: number;
     ownedCount: number;
     repeatedCount: number;
@@ -417,7 +465,8 @@ interface StickersViewProps {
     ) => void;
 
     onPressSticker: (
-        sticker: CollectionStickerResult
+        sticker:
+        CollectionStickerResult
     ) => void;
 
     onCollapseChange: (
@@ -444,36 +493,17 @@ function StickersView({
     if (!isHydrated) {
         return (
             <View style={styles.content}>
-                <View
-                    style={
-                        styles.placeholderCard
-                    }
-                >
-                    <Text
-                        style={
-                            styles.placeholderTitle
-                        }
-                    >
-                        Loading collection
-                    </Text>
-
-                    <Text
-                        style={
-                            styles.placeholderDescription
-                        }
-                    >
-                        Your saved sticker data is being
-                        loaded.
-                    </Text>
-                </View>
+                <LoadingCard />
             </View>
         );
     }
 
     const quickFilter =
-        activeFilter === 'missing' ||
+        activeFilter ===
+        'missing' ||
         activeFilter === 'owned' ||
-        activeFilter === 'repeated'
+        activeFilter ===
+        'repeated'
             ? activeFilter
             : null;
 
@@ -562,57 +592,595 @@ function StickersView({
 
 interface StatsViewProps {
     isHydrated: boolean;
-    completionPercentage: number;
-    uniqueOwned: number;
-    totalStickers: number;
+    stats: CollectionStatsSummary;
+
+    onPressSection: (
+        section:
+        SectionCollectionSummary
+    ) => void;
 }
 
 function StatsView({
                        isHydrated,
-                       completionPercentage,
-                       uniqueOwned,
-                       totalStickers,
+                       stats,
+                       onPressSection,
                    }: StatsViewProps) {
-    const roundedPercentage = Math.round(
-        completionPercentage
-    );
+    if (!isHydrated) {
+        return (
+            <View style={styles.content}>
+                <LoadingCard />
+            </View>
+        );
+    }
+
+    const overallPercentage =
+        Math.round(
+            stats.overall
+                .completionPercentage
+        );
+
+    const foilPercentage =
+        Math.round(
+            stats.foil
+                .completionPercentage
+        );
 
     return (
-        <View style={styles.content}>
+        <ScrollView
+            style={styles.statsScroll}
+            contentContainerStyle={
+                styles.statsContent
+            }
+            showsVerticalScrollIndicator={
+                false
+            }
+        >
+            <View style={styles.heroCard}>
+                <View style={styles.heroTopRow}>
+                    <View style={styles.heroCopy}>
+                        <Text
+                            style={
+                                styles.statsEyebrow
+                            }
+                        >
+                            ALBUM COMPLETION
+                        </Text>
+
+                        <Text
+                            style={
+                                styles.heroPercentage
+                            }
+                        >
+                            {overallPercentage}%
+                        </Text>
+
+                        <Text
+                            style={
+                                styles.heroDescription
+                            }
+                        >
+                            {
+                                stats.overall
+                                    .uniqueOwned
+                            }{' '}
+                            of{' '}
+                            {
+                                stats.overall
+                                    .totalStickers
+                            }{' '}
+                            unique stickers
+                            collected
+                        </Text>
+                    </View>
+
+                    <View
+                        style={
+                            styles.heroCountBadge
+                        }
+                    >
+                        <Text
+                            style={
+                                styles.heroCountValue
+                            }
+                        >
+                            {
+                                stats.overall
+                                    .missingStickers
+                            }
+                        </Text>
+
+                        <Text
+                            style={
+                                styles.heroCountLabel
+                            }
+                        >
+                            missing
+                        </Text>
+                    </View>
+                </View>
+
+                <ProgressBar
+                    percentage={
+                        stats.overall
+                            .completionPercentage
+                    }
+                    variant="gold"
+                />
+            </View>
+
+            <View style={styles.metricGrid}>
+                <MetricCard
+                    label="Owned"
+                    value={
+                        stats.overall
+                            .uniqueOwned
+                    }
+                    detail="unique stickers"
+                    variant="owned"
+                />
+
+                <MetricCard
+                    label="Missing"
+                    value={
+                        stats.overall
+                            .missingStickers
+                    }
+                    detail="still needed"
+                    variant="missing"
+                />
+
+                <MetricCard
+                    label="Duplicates"
+                    value={
+                        stats.overall
+                            .repeatedStickerTypes
+                    }
+                    detail="sticker types"
+                    variant="gold"
+                />
+
+                <MetricCard
+                    label="Trade copies"
+                    value={
+                        stats.overall
+                            .totalExtraCopies
+                    }
+                    detail="extra stickers"
+                    variant="gold"
+                />
+            </View>
+
+            <View style={styles.statsSection}>
+                <Text style={styles.statsSectionTitle}>
+                    Foil collection
+                </Text>
+
+                <View style={styles.foilCard}>
+                    <View style={styles.foilHeader}>
+                        <View>
+                            <Text
+                                style={
+                                    styles.foilPercentage
+                                }
+                            >
+                                {foilPercentage}%
+                            </Text>
+
+                            <Text
+                                style={
+                                    styles.foilDescription
+                                }
+                            >
+                                {
+                                    stats.foil
+                                        .ownedFoils
+                                }{' '}
+                                of{' '}
+                                {
+                                    stats.foil
+                                        .totalFoils
+                                }{' '}
+                                foils collected
+                            </Text>
+                        </View>
+
+                        <View
+                            style={
+                                styles.foilBadge
+                            }
+                        >
+                            <Text
+                                style={
+                                    styles.foilBadgeText
+                                }
+                            >
+                                FOIL
+                            </Text>
+                        </View>
+                    </View>
+
+                    <ProgressBar
+                        percentage={
+                            stats.foil
+                                .completionPercentage
+                        }
+                        variant="foil"
+                    />
+
+                    <Text
+                        style={
+                            styles.foilMissingText
+                        }
+                    >
+                        {
+                            stats.foil
+                                .missingFoils
+                        }{' '}
+                        foil stickers missing
+                    </Text>
+                </View>
+            </View>
+
+            <View style={styles.statsSection}>
+                <Text style={styles.statsSectionTitle}>
+                    Collection highlights
+                </Text>
+
+                <View style={styles.highlightRow}>
+                    <HighlightCard
+                        label="Most complete"
+                        section={
+                            stats.mostCompleteSection
+                        }
+                        variant="best"
+                    />
+
+                    <HighlightCard
+                        label="Needs attention"
+                        section={
+                            stats.leastCompleteSection
+                        }
+                        variant="lowest"
+                    />
+                </View>
+            </View>
+
+            <View style={styles.statsSection}>
+                <View
+                    style={
+                        styles.sectionProgressHeader
+                    }
+                >
+                    <Text
+                        style={
+                            styles.statsSectionTitle
+                        }
+                    >
+                        Progress by section
+                    </Text>
+
+                    <Text
+                        style={
+                            styles.sectionCount
+                        }
+                    >
+                        {stats.sections.length}
+                    </Text>
+                </View>
+
+                <View
+                    style={
+                        styles.sectionProgressList
+                    }
+                >
+                    {stats.sections.map(
+                        (section) => (
+                            <SectionProgressCard
+                                key={
+                                    section.sectionId
+                                }
+                                section={
+                                    section
+                                }
+                                onPress={() =>
+                                    onPressSection(
+                                        section
+                                    )
+                                }
+                            />
+                        )
+                    )}
+                </View>
+            </View>
+        </ScrollView>
+    );
+}
+
+function LoadingCard() {
+    return (
+        <View style={styles.placeholderCard}>
+            <Text style={styles.placeholderTitle}>
+                Loading collection
+            </Text>
+
+            <Text
+                style={
+                    styles.placeholderDescription
+                }
+            >
+                Your saved sticker data is being
+                loaded.
+            </Text>
+        </View>
+    );
+}
+
+type ProgressVariant =
+    | 'gold'
+    | 'foil';
+
+interface ProgressBarProps {
+    percentage: number;
+    variant: ProgressVariant;
+}
+
+function ProgressBar({
+                         percentage,
+                         variant,
+                     }: ProgressBarProps) {
+    const normalizedPercentage =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                percentage
+            )
+        );
+
+    return (
+        <View style={styles.progressTrack}>
+            <View
+                style={[
+                    styles.progressFill,
+                    variant === 'gold'
+                        ? styles.progressFillGold
+                        : styles.progressFillFoil,
+                    {
+                        width:
+                            `${normalizedPercentage}%`,
+                    },
+                ]}
+            />
+        </View>
+    );
+}
+
+type MetricVariant =
+    | 'owned'
+    | 'missing'
+    | 'gold';
+
+interface MetricCardProps {
+    label: string;
+    value: number;
+    detail: string;
+    variant: MetricVariant;
+}
+
+function MetricCard({
+                        label,
+                        value,
+                        detail,
+                        variant,
+                    }: MetricCardProps) {
+    return (
+        <View
+            style={[
+                styles.metricCard,
+                variant === 'owned' &&
+                styles.metricCardOwned,
+                variant === 'missing' &&
+                styles.metricCardMissing,
+                variant === 'gold' &&
+                styles.metricCardGold,
+            ]}
+        >
+            <Text style={styles.metricLabel}>
+                {label}
+            </Text>
+
+            <Text
+                style={[
+                    styles.metricValue,
+                    variant === 'owned' &&
+                    styles.metricValueOwned,
+                    variant === 'missing' &&
+                    styles.metricValueMissing,
+                    variant === 'gold' &&
+                    styles.metricValueGold,
+                ]}
+            >
+                {value}
+            </Text>
+
+            <Text style={styles.metricDetail}>
+                {detail}
+            </Text>
+        </View>
+    );
+}
+
+interface HighlightCardProps {
+    label: string;
+    section:
+        SectionCollectionSummary | null;
+    variant:
+        | 'best'
+        | 'lowest';
+}
+
+function HighlightCard({
+                           label,
+                           section,
+                           variant,
+                       }: HighlightCardProps) {
+    return (
+        <View
+            style={[
+                styles.highlightCard,
+                variant === 'best'
+                    ? styles.highlightCardBest
+                    : styles.highlightCardLowest,
+            ]}
+        >
+            <Text
+                style={
+                    styles.highlightLabel
+                }
+            >
+                {label}
+            </Text>
+
+            <Text
+                numberOfLines={2}
+                style={
+                    styles.highlightName
+                }
+            >
+                {section?.sectionName ??
+                    'No section'}
+            </Text>
+
+            <Text
+                style={[
+                    styles.highlightPercentage,
+                    variant === 'best'
+                        ? styles.highlightPercentageBest
+                        : styles.highlightPercentageLowest,
+                ]}
+            >
+                {section
+                    ? `${Math.round(
+                        section.completionPercentage
+                    )}%`
+                    : '—'}
+            </Text>
+
+            {section ? (
+                <Text
+                    style={
+                        styles.highlightDetail
+                    }
+                >
+                    {section.uniqueOwned} of{' '}
+                    {section.totalStickers}
+                </Text>
+            ) : null}
+        </View>
+    );
+}
+
+interface SectionProgressCardProps {
+    section:
+        SectionCollectionSummary;
+    onPress: () => void;
+}
+
+function SectionProgressCard({
+                                 section,
+                                 onPress,
+                             }: SectionProgressCardProps) {
+    const percentage =
+        Math.round(
+            section.completionPercentage
+        );
+
+    return (
+        <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${section.sectionName} in album`}
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.sectionProgressCard,
+                pressed &&
+                styles.sectionProgressCardPressed,
+            ]}
+        >
             <View
                 style={
-                    styles.placeholderCard
+                    styles.sectionProgressTop
+                }
+            >
+                <View
+                    style={
+                        styles.sectionProgressCopy
+                    }
+                >
+                    <Text
+                        numberOfLines={1}
+                        style={
+                            styles.sectionProgressName
+                        }
+                    >
+                        {section.sectionName}
+                    </Text>
+
+                    <Text
+                        numberOfLines={1}
+                        style={
+                            styles.sectionProgressMeta
+                        }
+                    >
+                        {section.federation
+                            ? `${section.federation} · `
+                            : ''}
+                        {section.uniqueOwned} of{' '}
+                        {section.totalStickers}
+                    </Text>
+                </View>
+
+                <Text
+                    style={
+                        styles.sectionProgressPercentage
+                    }
+                >
+                    {percentage}%
+                </Text>
+            </View>
+
+            <ProgressBar
+                percentage={
+                    section.completionPercentage
+                }
+                variant="gold"
+            />
+
+            <View
+                style={
+                    styles.sectionProgressFooter
                 }
             >
                 <Text
                     style={
-                        styles.placeholderTitle
+                        styles.sectionProgressFooterText
                     }
                 >
-                    Collection progress
+                    {section.missingStickers}{' '}
+                    missing
                 </Text>
 
                 <Text
                     style={
-                        styles.statsValue
+                        styles.sectionProgressFooterText
                     }
                 >
-                    {isHydrated
-                        ? `${roundedPercentage}%`
-                        : '—'}
-                </Text>
-
-                <Text
-                    style={
-                        styles.placeholderDescription
-                    }
-                >
-                    {isHydrated
-                        ? `${uniqueOwned} of ${totalStickers} unique stickers collected.`
-                        : 'Loading your collection statistics.'}
+                    {
+                        section.totalExtraCopies
+                    }{' '}
+                    trade copies
                 </Text>
             </View>
-        </View>
+        </Pressable>
     );
 }
 
@@ -776,6 +1344,8 @@ const styles = StyleSheet.create({
     },
 
     placeholderCard: {
+        marginTop:
+        theme.spacing.xl,
         padding:
         theme.spacing.xl,
         borderWidth: 1,
@@ -806,13 +1376,462 @@ const styles = StyleSheet.create({
         theme.colors.textSecondary,
     },
 
-    statsValue: {
+    statsScroll: {
+        flex: 1,
+        minHeight: 0,
+    },
+
+    statsContent: {
+        gap: theme.spacing.xl,
+        paddingTop:
+        theme.spacing.xl,
+        paddingBottom:
+            theme.spacing.xl * 2,
+    },
+
+    heroCard: {
+        padding:
+        theme.spacing.xl,
+        borderWidth: 1,
+        borderColor:
+            'rgba(245, 197, 24, 0.42)',
+        borderRadius:
+        theme.radius.lg,
+        backgroundColor:
+            'rgba(245, 197, 24, 0.10)',
+    },
+
+    heroTopRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent:
+            'space-between',
+        gap: theme.spacing.lg,
+    },
+
+    heroCopy: {
+        flex: 1,
+    },
+
+    statsEyebrow: {
+        fontSize:
+        theme.typography.sizes.xs,
+        fontWeight:
+        theme.typography.weights.bold,
+        letterSpacing: 1,
+        color:
+        theme.colors.gold,
+    },
+
+    heroPercentage: {
         marginTop:
-        theme.spacing.lg,
-        fontSize: 42,
+        theme.spacing.sm,
+        fontSize: 48,
+        lineHeight: 54,
         fontWeight:
         theme.typography.weights.bold,
         color:
+        theme.colors.textPrimary,
+    },
+
+    heroDescription: {
+        marginTop: 4,
+        fontSize:
+        theme.typography.sizes.sm,
+        lineHeight: 20,
+        color:
+        theme.colors.textSecondary,
+    },
+
+    heroCountBadge: {
+        minWidth: 74,
+        alignItems: 'center',
+        paddingHorizontal:
+        theme.spacing.md,
+        paddingVertical:
+        theme.spacing.sm,
+        borderWidth: 1,
+        borderColor:
+        theme.colors.border,
+        borderRadius:
+        theme.radius.lg,
+        backgroundColor:
+        theme.colors.missing,
+    },
+
+    heroCountValue: {
+        fontSize:
+        theme.typography.sizes.xl,
+        fontWeight:
+        theme.typography.weights.bold,
+        color:
+        theme.colors.textPrimary,
+    },
+
+    heroCountLabel: {
+        marginTop: 2,
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
+    },
+
+    progressTrack: {
+        height: 8,
+        marginTop:
+        theme.spacing.lg,
+        overflow: 'hidden',
+        borderRadius:
+        theme.radius.full,
+        backgroundColor:
+            'rgba(255,255,255,0.10)',
+    },
+
+    progressFill: {
+        height: '100%',
+        borderRadius:
+        theme.radius.full,
+    },
+
+    progressFillGold: {
+        backgroundColor:
+        theme.colors.gold,
+    },
+
+    progressFillFoil: {
+        backgroundColor:
+            '#9D8CFF',
+    },
+
+    metricGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: theme.spacing.md,
+    },
+
+    metricCard: {
+        width: '47.8%',
+        minHeight: 118,
+        padding:
+        theme.spacing.md,
+        borderWidth: 1,
+        borderRadius:
+        theme.radius.lg,
+    },
+
+    metricCardOwned: {
+        borderColor:
+            'rgba(53, 201, 111, 0.42)',
+        backgroundColor:
+            'rgba(53, 201, 111, 0.12)',
+    },
+
+    metricCardMissing: {
+        borderColor:
+        theme.colors.border,
+        backgroundColor:
+        theme.colors.missing,
+    },
+
+    metricCardGold: {
+        borderColor:
+            'rgba(245, 197, 24, 0.30)',
+        backgroundColor:
+            'rgba(245, 197, 24, 0.08)',
+    },
+
+    metricLabel: {
+        fontSize:
+        theme.typography.sizes.sm,
+        color:
+        theme.colors.textSecondary,
+    },
+
+    metricValue: {
+        marginTop:
+        theme.spacing.sm,
+        fontSize: 30,
+        fontWeight:
+        theme.typography.weights.bold,
+    },
+
+    metricValueOwned: {
+        color:
         theme.colors.owned,
+    },
+
+    metricValueMissing: {
+        color:
+        theme.colors.textPrimary,
+    },
+
+    metricValueGold: {
+        color:
+        theme.colors.gold,
+    },
+
+    metricDetail: {
+        marginTop: 4,
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
+    },
+
+    statsSection: {
+        gap: theme.spacing.md,
+    },
+
+    statsSectionTitle: {
+        fontSize:
+        theme.typography.sizes.lg,
+        fontWeight:
+        theme.typography.weights.bold,
+        color:
+        theme.colors.textPrimary,
+    },
+
+    foilCard: {
+        padding:
+        theme.spacing.lg,
+        borderWidth: 1,
+        borderColor:
+            'rgba(139, 126, 255, 0.42)',
+        borderRadius:
+        theme.radius.lg,
+        backgroundColor:
+            'rgba(139, 126, 255, 0.10)',
+    },
+
+    foilHeader: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent:
+            'space-between',
+        gap: theme.spacing.md,
+    },
+
+    foilPercentage: {
+        fontSize: 32,
+        fontWeight:
+        theme.typography.weights.bold,
+        color: '#C8C0FF',
+    },
+
+    foilDescription: {
+        marginTop: 4,
+        fontSize:
+        theme.typography.sizes.sm,
+        color:
+        theme.colors.textSecondary,
+    },
+
+    foilBadge: {
+        paddingHorizontal: 9,
+        paddingVertical: 5,
+        borderWidth: 1,
+        borderColor:
+            'rgba(139, 126, 255, 0.55)',
+        borderRadius:
+        theme.radius.full,
+        backgroundColor:
+            'rgba(139, 126, 255, 0.18)',
+    },
+
+    foilBadgeText: {
+        fontSize: 9,
+        fontWeight:
+        theme.typography.weights.bold,
+        letterSpacing: 0.7,
+        color: '#C8C0FF',
+    },
+
+    foilMissingText: {
+        marginTop:
+        theme.spacing.sm,
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
+    },
+
+    highlightRow: {
+        flexDirection: 'row',
+        gap: theme.spacing.md,
+    },
+
+    highlightCard: {
+        flex: 1,
+        minHeight: 152,
+        padding:
+        theme.spacing.md,
+        borderWidth: 1,
+        borderRadius:
+        theme.radius.lg,
+    },
+
+    highlightCardBest: {
+        borderColor:
+            'rgba(53, 201, 111, 0.38)',
+        backgroundColor:
+            'rgba(53, 201, 111, 0.10)',
+    },
+
+    highlightCardLowest: {
+        borderColor:
+        theme.colors.border,
+        backgroundColor:
+        theme.colors.missing,
+    },
+
+    highlightLabel: {
+        fontSize:
+        theme.typography.sizes.xs,
+        fontWeight:
+        theme.typography.weights.semibold,
+        color:
+        theme.colors.textMuted,
+    },
+
+    highlightName: {
+        minHeight: 40,
+        marginTop:
+        theme.spacing.sm,
+        fontSize:
+        theme.typography.sizes.sm,
+        fontWeight:
+        theme.typography.weights.semibold,
+        lineHeight: 19,
+        color:
+        theme.colors.textPrimary,
+    },
+
+    highlightPercentage: {
+        marginTop:
+        theme.spacing.sm,
+        fontSize: 28,
+        fontWeight:
+        theme.typography.weights.bold,
+    },
+
+    highlightPercentageBest: {
+        color:
+        theme.colors.owned,
+    },
+
+    highlightPercentageLowest: {
+        color:
+        theme.colors.gold,
+    },
+
+    highlightDetail: {
+        marginTop: 2,
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
+    },
+
+    sectionProgressHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent:
+            'space-between',
+    },
+
+    sectionCount: {
+        minWidth: 30,
+        textAlign: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius:
+        theme.radius.full,
+        backgroundColor:
+        theme.colors.missing,
+        fontSize:
+        theme.typography.sizes.xs,
+        fontWeight:
+        theme.typography.weights.bold,
+        color:
+        theme.colors.gold,
+    },
+
+    sectionProgressList: {
+        gap: theme.spacing.md,
+    },
+
+    sectionProgressCard: {
+        padding:
+        theme.spacing.md,
+        borderWidth: 1,
+        borderColor:
+        theme.colors.border,
+        borderRadius:
+        theme.radius.lg,
+        backgroundColor:
+        theme.colors.missing,
+    },
+
+    sectionProgressCardPressed: {
+        opacity: 0.76,
+        transform: [
+            {
+                scale: 0.99,
+            },
+        ],
+    },
+
+    sectionProgressTop: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent:
+            'space-between',
+        gap: theme.spacing.md,
+    },
+
+    sectionProgressCopy: {
+        flex: 1,
+    },
+
+    sectionProgressName: {
+        fontSize:
+        theme.typography.sizes.md,
+        fontWeight:
+        theme.typography.weights.semibold,
+        color:
+        theme.colors.textPrimary,
+    },
+
+    sectionProgressMeta: {
+        marginTop: 4,
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
+    },
+
+    sectionProgressPercentage: {
+        fontSize:
+        theme.typography.sizes.lg,
+        fontWeight:
+        theme.typography.weights.bold,
+        color:
+        theme.colors.gold,
+    },
+
+    sectionProgressFooter: {
+        flexDirection: 'row',
+        justifyContent:
+            'space-between',
+        gap: theme.spacing.sm,
+        marginTop:
+        theme.spacing.sm,
+    },
+
+    sectionProgressFooterText: {
+        fontSize:
+        theme.typography.sizes.xs,
+        color:
+        theme.colors.textMuted,
     },
 });

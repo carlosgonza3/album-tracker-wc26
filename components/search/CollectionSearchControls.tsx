@@ -59,7 +59,7 @@ export function CollectionSearchControls({
                 <TextInput
                     value={query}
                     onChangeText={onChangeQuery}
-                    placeholder="Search number, player, team, or section"
+                    placeholder="Search by Sticker Code or Team name"
                     placeholderTextColor={
                         theme.colors.textMuted
                     }
