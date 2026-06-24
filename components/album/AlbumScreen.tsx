@@ -1,7 +1,11 @@
 import {
     useCallback,
+    useEffect,
     useMemo,
+    useRef,
 } from 'react';
+
+import { useLocalSearchParams } from 'expo-router';
 
 import {
     type FlatList,
@@ -44,7 +48,31 @@ function normalizeCopies(
     );
 }
 
+function getSingleRouteParam(
+    value: string | string[] | undefined
+): string | undefined {
+    return Array.isArray(value)
+        ? value[0]
+        : value;
+}
+
 export function AlbumScreen() {
+    const routeParams =
+        useLocalSearchParams();
+
+    const requestedSectionId =
+        getSingleRouteParam(
+            routeParams.sectionId
+        );
+
+    const openRequest =
+        getSingleRouteParam(
+            routeParams.openRequest
+        );
+
+    const handledOpenRequestRef =
+        useRef<string | null>(null);
+
     const {
         safeAreaTop,
         expandedHeaderHeight,
@@ -67,7 +95,7 @@ export function AlbumScreen() {
         pagePosition,
 
         /*
-         * This is now the PagerView index:
+         * PagerView index:
          *
          * 0 = Overview
          * 1 = first real section
@@ -81,8 +109,62 @@ export function AlbumScreen() {
         handlePageScroll,
         handlePageSelected,
     } = useAlbumNavigation({
-        sections: albumCatalogue.sections,
+        sections:
+        albumCatalogue.sections,
     });
+
+    useEffect(() => {
+        if (!requestedSectionId) {
+            return;
+        }
+
+        const requestKey =
+            openRequest ??
+            requestedSectionId;
+
+        if (
+            handledOpenRequestRef.current ===
+            requestKey
+        ) {
+            return;
+        }
+
+        const sectionIndex =
+            albumCatalogue.sections.findIndex(
+                (section) =>
+                    section.id ===
+                    requestedSectionId
+            );
+
+        if (sectionIndex < 0) {
+            return;
+        }
+
+        handledOpenRequestRef.current =
+            requestKey;
+
+        /*
+         * Wait one frame so PagerView and its native ref
+         * are mounted after switching from Collection.
+         */
+        const frameId =
+            requestAnimationFrame(() => {
+                selectSection(
+                    requestedSectionId,
+                    sectionIndex
+                );
+            });
+
+        return () => {
+            cancelAnimationFrame(
+                frameId
+            );
+        };
+    }, [
+        openRequest,
+        requestedSectionId,
+        selectSection,
+    ]);
 
     const {
         scrollY,
@@ -108,10 +190,6 @@ export function AlbumScreen() {
     /*
      * Register the Overview FlatList with the same scroll
      * controller used by sticker section lists.
-     *
-     * Both FlatList types expose the same imperative
-     * scrollToOffset API, so the runtime behavior is
-     * identical even though their item types differ.
      */
     const overviewListRef =
         useCallback(
@@ -129,52 +207,65 @@ export function AlbumScreen() {
                         FlatList<StickerWithState> | null
                 );
             },
-            [getSectionListRef]
+            [
+                getSectionListRef,
+            ]
         );
 
-    const albumSummary = useMemo(
-        () =>
-            getCollectionSummary(
-                albumCatalogue,
-                collection
-            ),
-        [collection]
-    );
+    const albumSummary =
+        useMemo(
+            () =>
+                getCollectionSummary(
+                    albumCatalogue,
+                    collection
+                ),
+            [
+                collection,
+            ]
+        );
 
-    const repeatedCopies = useMemo(
-        () =>
-            Object.values(
-                collection
-            ).reduce(
-                (total, copies) => {
-                    const normalizedCopies =
-                        normalizeCopies(
-                            copies
+    const repeatedCopies =
+        useMemo(
+            () =>
+                Object.values(
+                    collection
+                ).reduce(
+                    (
+                        total,
+                        copies
+                    ) => {
+                        const normalizedCopies =
+                            normalizeCopies(
+                                copies
+                            );
+
+                        return (
+                            total +
+                            Math.max(
+                                0,
+                                normalizedCopies -
+                                1
+                            )
                         );
-
-                    return (
-                        total +
-                        Math.max(
-                            0,
-                            normalizedCopies - 1
-                        )
-                    );
-                },
-                0
-            ),
-        [collection]
-    );
+                    },
+                    0
+                ),
+            [
+                collection,
+            ]
+        );
 
     const albumHeaderSummary =
         useMemo<AlbumHeaderSummary>(
             () => {
-                const remaining = Math.max(
-                    0,
-                    albumSummary
-                        .totalStickers -
-                    albumSummary
-                        .uniqueOwned
-                );
+                const remaining =
+                    Math.max(
+                        0,
+                        albumSummary
+                            .totalStickers -
+                        albumSummary
+                            .uniqueOwned
+                    );
 
                 return {
                     collected:
@@ -204,31 +295,37 @@ export function AlbumScreen() {
 
     const handleIncrementSticker =
         useCallback(
-            (stickerId: string) => {
+            (
+                stickerId: string
+            ) => {
                 void incrementSticker(
                     stickerId
                 );
             },
-            [incrementSticker]
+            [
+                incrementSticker,
+            ]
         );
 
     const handleDecrementSticker =
         useCallback(
-            (stickerId: string) => {
+            (
+                stickerId: string
+            ) => {
                 void decrementSticker(
                     stickerId
                 );
             },
-            [decrementSticker]
+            [
+                decrementSticker,
+            ]
         );
 
-    /*
-     * Called when PagerView settles on a real album
-     * section.
-     */
     const handleSectionSelected =
         useCallback(
-            (sectionId: string) => {
+            (
+                sectionId: string
+            ) => {
                 synchronizeSectionScroll(
                     sectionId
                 );
@@ -238,13 +335,6 @@ export function AlbumScreen() {
             ]
         );
 
-    /*
-     * Called when PagerView settles on Overview.
-     *
-     * This applies the current shared vertical position
-     * to the Overview FlatList, preventing the large top
-     * spacer from reappearing unexpectedly.
-     */
     const handleOverviewSelected =
         useCallback(() => {
             synchronizeSectionScroll(
@@ -257,12 +347,16 @@ export function AlbumScreen() {
     const handleCollapseHeader =
         useCallback(() => {
             scrollToSections(true);
-        }, [scrollToSections]);
+        }, [
+            scrollToSections,
+        ]);
 
     const handleExpandHeader =
         useCallback(() => {
             scrollToAlbumCover(true);
-        }, [scrollToAlbumCover]);
+        }, [
+            scrollToAlbumCover,
+        ]);
 
     return (
         <View style={styles.screen}>
@@ -270,8 +364,12 @@ export function AlbumScreen() {
                 sections={
                     albumCatalogue.sections
                 }
-                collection={collection}
-                pagerRef={pagerRef}
+                collection={
+                    collection
+                }
+                pagerRef={
+                    pagerRef
+                }
                 selectedIndex={
                     selectedSectionIndex
                 }
@@ -333,7 +431,9 @@ export function AlbumScreen() {
             />
 
             <CollapsibleAlbumHeader
-                scrollY={scrollY}
+                scrollY={
+                    scrollY
+                }
                 expandedHeight={
                     expandedHeaderHeight
                 }
@@ -361,7 +461,9 @@ export function AlbumScreen() {
                 selectedIndex={
                     selectedSectionIndex
                 }
-                scrollY={scrollY}
+                scrollY={
+                    scrollY
+                }
                 albumSectionsSnapOffset={
                     albumSectionsSnapOffset
                 }

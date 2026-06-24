@@ -24,9 +24,9 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="stats"
+                name="collection"
                 options={{
-                    title: 'Stats',
+                    title: 'Collection',
                 }}
             />
 
