@@ -72,10 +72,13 @@ function StickerCardComponent({
                                   onIncrementSticker,
                                   onDecrementSticker,
                               }: StickerCardProps) {
-    const translateX = useSharedValue(0);
+    const translateX =
+        useSharedValue(0);
 
     const confirmedDirection =
-        useSharedValue<-1 | 0 | 1>(0);
+        useSharedValue<
+            -1 | 0 | 1
+        >(0);
 
     const isGestureActivated =
         useSharedValue(false);
@@ -94,22 +97,24 @@ function StickerCardComponent({
     const isOwned = copies === 1;
     const isRepeated = copies >= 2;
 
-    const applyIncrement = useCallback(() => {
-        onIncrementSticker(id);
-    }, [
-        id,
-        onIncrementSticker,
-    ]);
+    const applyIncrement =
+        useCallback(() => {
+            onIncrementSticker(id);
+        }, [
+            id,
+            onIncrementSticker,
+        ]);
 
-    const applyDecrement = useCallback(() => {
-        if (copies > 0) {
-            onDecrementSticker(id);
-        }
-    }, [
-        copies,
-        id,
-        onDecrementSticker,
-    ]);
+    const applyDecrement =
+        useCallback(() => {
+            if (copies > 0) {
+                onDecrementSticker(id);
+            }
+        }, [
+            copies,
+            id,
+            onDecrementSticker,
+        ]);
 
     const panGesture = useMemo(
         () =>
@@ -118,21 +123,38 @@ function StickerCardComponent({
                     SWIPE_ACTIVATION_DELAY
                 )
                 .minDistance(8)
-                .activeOffsetX([-10, 10])
-                .failOffsetY([-8, 8])
-                .shouldCancelWhenOutside(true)
+                .activeOffsetX([
+                    -10,
+                    10,
+                ])
+                .failOffsetY([
+                    -8,
+                    8,
+                ])
+                .shouldCancelWhenOutside(
+                    true
+                )
 
                 .onStart(() => {
-                    isGestureActivated.value = true;
+                    isGestureActivated.value =
+                        true;
 
                     activationPulse.value =
                         withSequence(
-                            withTiming(1, {
-                                duration: 90,
-                            }),
-                            withTiming(0, {
-                                duration: 170,
-                            })
+                            withTiming(
+                                1,
+                                {
+                                    duration:
+                                        90,
+                                }
+                            ),
+                            withTiming(
+                                0,
+                                {
+                                    duration:
+                                        170,
+                                }
+                            )
                         );
 
                     runOnJS(
@@ -148,20 +170,25 @@ function StickerCardComponent({
                         MAX_TRANSLATION;
 
                     if (copies === 0) {
-                        if (invertSwipeDirections) {
-                            maximumTranslation = 0;
+                        if (
+                            invertSwipeDirections
+                        ) {
+                            maximumTranslation =
+                                0;
                         } else {
-                            minimumTranslation = 0;
+                            minimumTranslation =
+                                0;
                         }
                     }
 
-                    translateX.value = Math.max(
-                        minimumTranslation,
-                        Math.min(
-                            maximumTranslation,
-                            event.translationX
-                        )
-                    );
+                    translateX.value =
+                        Math.max(
+                            minimumTranslation,
+                            Math.min(
+                                maximumTranslation,
+                                event.translationX
+                            )
+                        );
 
                     const reachedRightThreshold =
                         translateX.value >=
@@ -182,7 +209,8 @@ function StickerCardComponent({
                                 : 0;
 
                     if (
-                        nextDirection !== 0 &&
+                        nextDirection !==
+                        0 &&
                         nextDirection !==
                         confirmedDirection.value
                     ) {
@@ -201,32 +229,46 @@ function StickerCardComponent({
 
                     const shouldIncrement =
                         invertSwipeDirections
-                            ? direction === -1
-                            : direction === 1;
+                            ? direction ===
+                            -1
+                            : direction ===
+                            1;
 
                     const shouldDecrement =
                         invertSwipeDirections
-                            ? direction === 1
-                            : direction === -1;
+                            ? direction ===
+                            1
+                            : direction ===
+                            -1;
 
-                    if (shouldIncrement) {
-                        runOnJS(applyIncrement)();
+                    if (
+                        shouldIncrement
+                    ) {
+                        runOnJS(
+                            applyIncrement
+                        )();
                     } else if (
                         shouldDecrement &&
                         copies > 0
                     ) {
-                        runOnJS(applyDecrement)();
+                        runOnJS(
+                            applyDecrement
+                        )();
                     }
                 })
 
                 .onFinalize(() => {
-                    confirmedDirection.value = 0;
-                    isGestureActivated.value = false;
+                    confirmedDirection.value =
+                        0;
 
-                    translateX.value = withSpring(
-                        0,
-                        SPRING_CONFIG
-                    );
+                    isGestureActivated.value =
+                        false;
+
+                    translateX.value =
+                        withSpring(
+                            0,
+                            SPRING_CONFIG
+                        );
                 }),
         [
             activationPulse,
@@ -242,31 +284,52 @@ function StickerCardComponent({
 
     const cardAnimatedStyle =
         useAnimatedStyle(() => {
-            const distance = Math.abs(
-                translateX.value
-            );
+            const distance =
+                Math.abs(
+                    translateX.value
+                );
 
             const activationScale =
                 interpolate(
                     activationPulse.value,
-                    [0, 1],
-                    [1, 1.035]
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        1,
+                        1.035,
+                    ]
                 );
 
-            const dragScale = interpolate(
-                distance,
-                [0, SWIPE_THRESHOLD],
-                [1, 0.98],
-                'clamp'
-            );
+            const dragScale =
+                interpolate(
+                    distance,
+                    [
+                        0,
+                        SWIPE_THRESHOLD,
+                    ],
+                    [
+                        1,
+                        0.98,
+                    ],
+                    'clamp'
+                );
 
             return {
-                opacity: interpolate(
-                    distance,
-                    [0, MAX_TRANSLATION],
-                    [1, 0.94],
-                    'clamp'
-                ),
+                opacity:
+                    interpolate(
+                        distance,
+                        [
+                            0,
+                            MAX_TRANSLATION,
+                        ],
+                        [
+                            1,
+                            0.94,
+                        ],
+                        'clamp'
+                    ),
 
                 transform: [
                     {
@@ -312,19 +375,33 @@ function StickerCardComponent({
 
     const activationOverlayStyle =
         useAnimatedStyle(() => ({
-            opacity: interpolate(
-                activationPulse.value,
-                [0, 1],
-                [0, 0.72]
-            ),
+            opacity:
+                interpolate(
+                    activationPulse.value,
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        0,
+                        0.72,
+                    ]
+                ),
 
             transform: [
                 {
-                    scale: interpolate(
-                        activationPulse.value,
-                        [0, 1],
-                        [0.96, 1.045]
-                    ),
+                    scale:
+                        interpolate(
+                            activationPulse.value,
+                            [
+                                0,
+                                1,
+                            ],
+                            [
+                                0.96,
+                                1.045,
+                            ]
+                        ),
                 },
             ],
         }));
@@ -335,18 +412,32 @@ function StickerCardComponent({
                 invertSwipeDirections
                     ? interpolate(
                         translateX.value,
-                        [-SWIPE_THRESHOLD, 0],
-                        [1, 0],
+                        [
+                            -SWIPE_THRESHOLD,
+                            0,
+                        ],
+                        [
+                            1,
+                            0,
+                        ],
                         'clamp'
                     )
                     : interpolate(
                         translateX.value,
-                        [0, SWIPE_THRESHOLD],
-                        [0, 1],
+                        [
+                            0,
+                            SWIPE_THRESHOLD,
+                        ],
+                        [
+                            0,
+                            1,
+                        ],
                         'clamp'
                     );
 
-            return { opacity };
+            return {
+                opacity,
+            };
         });
 
     const decrementActionStyle =
@@ -361,42 +452,71 @@ function StickerCardComponent({
                 invertSwipeDirections
                     ? interpolate(
                         translateX.value,
-                        [0, SWIPE_THRESHOLD],
-                        [0, 1],
+                        [
+                            0,
+                            SWIPE_THRESHOLD,
+                        ],
+                        [
+                            0,
+                            1,
+                        ],
                         'clamp'
                     )
                     : interpolate(
                         translateX.value,
-                        [-SWIPE_THRESHOLD, 0],
-                        [1, 0],
+                        [
+                            -SWIPE_THRESHOLD,
+                            0,
+                        ],
+                        [
+                            1,
+                            0,
+                        ],
                         'clamp'
                     );
 
-            return { opacity };
+            return {
+                opacity,
+            };
         });
 
     const actionContentStyle =
         useAnimatedStyle(() => {
-            const distance = Math.abs(
-                translateX.value
-            );
+            const distance =
+                Math.abs(
+                    translateX.value
+                );
 
             return {
-                opacity: interpolate(
-                    distance,
-                    [6, SWIPE_THRESHOLD],
-                    [0.3, 1],
-                    'clamp'
-                ),
+                opacity:
+                    interpolate(
+                        distance,
+                        [
+                            6,
+                            SWIPE_THRESHOLD,
+                        ],
+                        [
+                            0.3,
+                            1,
+                        ],
+                        'clamp'
+                    ),
 
                 transform: [
                     {
-                        scale: interpolate(
-                            distance,
-                            [0, SWIPE_THRESHOLD],
-                            [0.88, 1],
-                            'clamp'
-                        ),
+                        scale:
+                            interpolate(
+                                distance,
+                                [
+                                    0,
+                                    SWIPE_THRESHOLD,
+                                ],
+                                [
+                                    0.88,
+                                    1,
+                                ],
+                                'clamp'
+                            ),
                     },
                 ],
             };
@@ -413,7 +533,11 @@ function StickerCardComponent({
             : 'swipe left';
 
     return (
-        <View style={styles.swipeContainer}>
+        <View
+            style={
+                styles.swipeContainer
+            }
+        >
             <Animated.View
                 pointerEvents="none"
                 style={[
@@ -421,29 +545,36 @@ function StickerCardComponent({
                     invertSwipeDirections
                         ? styles.actionRight
                         : styles.actionLeft,
-                    isMissing &&
-                    styles.actionMissing,
-                    isOwned &&
-                    styles.actionOwned,
-                    isRepeated &&
-                    styles.actionRepeated,
+                    styles.incrementAction,
                     incrementActionStyle,
                 ]}
             >
                 <Animated.View
-                    style={actionContentStyle}
+                    style={
+                        actionContentStyle
+                    }
                 >
-                    <Text style={styles.actionSymbol}>
+                    <Text
+                        style={[
+                            styles.actionSymbol,
+                            styles.incrementActionText,
+                        ]}
+                    >
                         +1
                     </Text>
 
-                    <Text style={styles.actionLabel}>
+                    <Text
+                        style={[
+                            styles.actionLabel,
+                            styles.incrementActionText,
+                        ]}
+                    >
                         Add New
                     </Text>
                 </Animated.View>
             </Animated.View>
 
-            {copies > 0 && (
+            {copies > 0 ? (
                 <Animated.View
                     pointerEvents="none"
                     style={[
@@ -451,10 +582,7 @@ function StickerCardComponent({
                         invertSwipeDirections
                             ? styles.actionLeft
                             : styles.actionRight,
-                        isOwned &&
-                        styles.actionOwned,
-                        isRepeated &&
-                        styles.actionRepeated,
+                        styles.decrementAction,
                         decrementActionStyle,
                     ]}
                 >
@@ -465,19 +593,25 @@ function StickerCardComponent({
                         ]}
                     >
                         <Text
-                            style={styles.actionSymbol}
+                            style={[
+                                styles.actionSymbol,
+                                styles.decrementActionText,
+                            ]}
                         >
                             −1
                         </Text>
 
                         <Text
-                            style={styles.actionLabel}
+                            style={[
+                                styles.actionLabel,
+                                styles.decrementActionText,
+                            ]}
                         >
                             Remove One
                         </Text>
                     </Animated.View>
                 </Animated.View>
-            )}
+            ) : null}
 
             <Animated.View
                 pointerEvents="none"
@@ -487,13 +621,16 @@ function StickerCardComponent({
                 ]}
             />
 
-            <GestureDetector gesture={panGesture}>
+            <GestureDetector
+                gesture={panGesture}
+            >
                 <Animated.View
                     accessible
                     accessibilityRole="adjustable"
                     accessibilityLabel={`${id}, ${name}`}
                     accessibilityValue={{
-                        text: `${copies} copies`,
+                        text:
+                            `${copies} copies`,
                     }}
                     accessibilityHint={
                         copies === 0
@@ -511,8 +648,16 @@ function StickerCardComponent({
                         cardAnimatedStyle,
                     ]}
                 >
-                    <View style={styles.topRow}>
-                        <Text style={styles.id}>
+                    <View
+                        style={
+                            styles.topRow
+                        }
+                    >
+                        <Text
+                            style={
+                                styles.id
+                            }
+                        >
                             {id}
                         </Text>
 
@@ -525,9 +670,12 @@ function StickerCardComponent({
                                 ]}
                             >
                                 <Text
-                                    style={styles.copyText}
+                                    style={
+                                        styles.copyText
+                                    }
                                 >
-                                    ×{copies}
+                                    ×
+                                    {copies}
                                 </Text>
                             </View>
                         ) : null}
@@ -535,12 +683,18 @@ function StickerCardComponent({
 
                     <Text
                         numberOfLines={2}
-                        style={styles.name}
+                        style={
+                            styles.name
+                        }
                     >
                         {name}
                     </Text>
 
-                    <View style={styles.footer}>
+                    <View
+                        style={
+                            styles.footer
+                        }
+                    >
                         <Text
                             style={[
                                 styles.status,
@@ -557,9 +711,18 @@ function StickerCardComponent({
                                     : 'Repeated'}
                         </Text>
 
-                        {type === 'foil' ? (
-                            <View style={styles.typeBadge}>
-                                <Text style={styles.typeText}>
+                        {type ===
+                        'foil' ? (
+                            <View
+                                style={
+                                    styles.typeBadge
+                                }
+                            >
+                                <Text
+                                    style={
+                                        styles.typeText
+                                    }
+                                >
                                     FOIL
                                 </Text>
                             </View>
@@ -628,34 +791,40 @@ const styles = StyleSheet.create({
         top: 0,
         bottom: 0,
         width: '58%',
-        justifyContent: 'center',
+        justifyContent:
+            'center',
         paddingHorizontal:
         theme.spacing.md,
     },
 
     actionLeft: {
         left: 0,
-        alignItems: 'flex-start',
+        alignItems:
+            'flex-start',
     },
 
     actionRight: {
         right: 0,
-        alignItems: 'flex-end',
+        alignItems:
+            'flex-end',
     },
 
-    actionMissing: {
+    incrementAction: {
         backgroundColor:
-            'rgba(53, 201, 111, 0.12)',
+            'rgba(53, 201, 111, 0.28)',
     },
 
-    actionOwned: {
+    decrementAction: {
         backgroundColor:
-            'rgba(53, 201, 111, 0.22)',
+            'rgba(239, 68, 68, 0.30)',
     },
 
-    actionRepeated: {
-        backgroundColor:
-            'rgba(53, 201, 111, 0.34)',
+    incrementActionText: {
+        color: '#6EE79A',
+    },
+
+    decrementActionText: {
+        color: '#FF8A8A',
     },
 
     removeContent: {
@@ -666,7 +835,8 @@ const styles = StyleSheet.create({
         fontSize:
         theme.typography.sizes.lg,
         fontWeight:
-        theme.typography.weights.bold,
+        theme.typography.weights
+            .bold,
         color:
         theme.colors.textPrimary,
     },
@@ -676,7 +846,8 @@ const styles = StyleSheet.create({
         fontSize:
         theme.typography.sizes.xs,
         fontWeight:
-        theme.typography.weights.semibold,
+        theme.typography.weights
+            .semibold,
         color:
         theme.colors.textSecondary,
     },
@@ -718,7 +889,8 @@ const styles = StyleSheet.create({
     topRow: {
         minHeight: 24,
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems:
+            'flex-start',
         justifyContent:
             'space-between',
         gap: theme.spacing.xs,
@@ -729,7 +901,8 @@ const styles = StyleSheet.create({
         fontSize:
         theme.typography.sizes.md,
         fontWeight:
-        theme.typography.weights.bold,
+        theme.typography.weights
+            .bold,
         color:
         theme.colors.textPrimary,
     },
@@ -747,10 +920,13 @@ const styles = StyleSheet.create({
     footer: {
         minHeight: 24,
         marginTop: 'auto',
-        paddingTop: theme.spacing.md,
+        paddingTop:
+        theme.spacing.md,
         flexDirection: 'row',
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
+        alignItems:
+            'flex-end',
+        justifyContent:
+            'space-between',
         gap: theme.spacing.sm,
     },
 
@@ -759,13 +935,15 @@ const styles = StyleSheet.create({
         fontSize:
         theme.typography.sizes.xs,
         fontWeight:
-        theme.typography.weights.semibold,
+        theme.typography.weights
+            .semibold,
         color:
         theme.colors.missingText,
     },
 
     statusOwned: {
-        color: theme.colors.owned,
+        color:
+        theme.colors.owned,
     },
 
     statusRepeated: {
@@ -787,7 +965,8 @@ const styles = StyleSheet.create({
     typeText: {
         fontSize: 8,
         fontWeight:
-        theme.typography.weights.bold,
+        theme.typography.weights
+            .bold,
         letterSpacing: 0.6,
         color: '#B8AEFF',
     },
@@ -795,7 +974,8 @@ const styles = StyleSheet.create({
     copyBadge: {
         minWidth: 28,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent:
+            'center',
         paddingHorizontal: 7,
         paddingVertical: 4,
         borderWidth: 1,
@@ -806,6 +986,7 @@ const styles = StyleSheet.create({
         backgroundColor:
             'rgba(148, 163, 184, 0.14)',
     },
+
     copyBadgeRepeated: {
         borderColor:
             'rgba(148, 163, 184, 0.38)',
@@ -817,15 +998,18 @@ const styles = StyleSheet.create({
         fontSize:
         theme.typography.sizes.xs,
         fontWeight:
-        theme.typography.weights.bold,
+        theme.typography.weights
+            .bold,
         color: '#CBD5E1',
     },
+
     standardTypeBadge: {
         borderColor:
             'rgba(148, 163, 184, 0.30)',
         backgroundColor:
             'rgba(148, 163, 184, 0.14)',
     },
+
     standardTypeText: {
         color: '#CBD5E1',
     },

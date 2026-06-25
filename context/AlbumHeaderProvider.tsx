@@ -23,7 +23,16 @@ interface AlbumHeaderScrollActions {
 }
 
 export interface AlbumHeaderContextValue {
+    /*
+     * Controls the global Album header.
+     */
     scrollY: SharedValue<number>;
+
+    /*
+     * Receives scroll positions from all tab screens
+     * and controls the GlassTabBar animation.
+     */
+    tabBarScrollY: SharedValue<number>;
 
     isHeaderExpanded: boolean;
 
@@ -51,6 +60,9 @@ export function AlbumHeaderProvider({
                                         children,
                                     }: PropsWithChildren) {
     const scrollY =
+        useSharedValue(0);
+
+    const tabBarScrollY =
         useSharedValue(0);
 
     const [
@@ -92,9 +104,9 @@ export function AlbumHeaderProvider({
     const collapseHeader =
         useCallback(() => {
             /*
-             * Update global navigation visibility
+             * Show the tab content and navigation
              * immediately, then run the existing Album
-             * list transition.
+             * scroll transition.
              */
             setIsHeaderExpanded(false);
 
@@ -105,20 +117,30 @@ export function AlbumHeaderProvider({
     const expandHeader =
         useCallback(() => {
             /*
-             * Hide the bottom tabs immediately on every
-             * route, then run the existing Album list
-             * transition.
+             * Hide the tab content and navigation
+             * immediately, then run the existing Album
+             * scroll transition.
              */
             setIsHeaderExpanded(true);
 
+            /*
+             * Reset the independent tab-bar scroll state
+             * so it starts expanded when it becomes
+             * visible again.
+             */
+            tabBarScrollY.value = 0;
+
             scrollActionsRef.current
                 ?.scrollToAlbumCover(true);
-        }, []);
+        }, [
+            tabBarScrollY,
+        ]);
 
     const value =
         useMemo<AlbumHeaderContextValue>(
             () => ({
                 scrollY,
+                tabBarScrollY,
                 isHeaderExpanded,
                 collapseHeader,
                 expandHeader,
@@ -131,6 +153,7 @@ export function AlbumHeaderProvider({
                 isHeaderExpanded,
                 registerScrollActions,
                 scrollY,
+                tabBarScrollY,
                 setHeaderExpanded,
             ]
         );

@@ -10,13 +10,14 @@ import {
     Alert,
     Platform,
     Pressable,
-    ScrollView,
     StyleSheet,
     Switch,
     Text,
     TextInput,
     View,
 } from 'react-native';
+
+import Animated from 'react-native-reanimated';
 
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
@@ -435,11 +436,12 @@ export default function SettingsScreen() {
         };
 
     return (
-        <ScrollView
+        <Animated.ScrollView
             style={styles.screen}
             contentContainerStyle={
                 styles.content
             }
+            scrollEventThrottle={16}
             showsVerticalScrollIndicator={
                 false
             }
@@ -1420,7 +1422,7 @@ export default function SettingsScreen() {
                     </View>
                 </View>
             </View>
-        </ScrollView>
+        </Animated.ScrollView>
     );
 }
 

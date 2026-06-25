@@ -14,14 +14,25 @@ import {
     View,
 } from 'react-native';
 
-import { AlbumSectionPageHeader } from '@/components/album/section/AlbumSectionPageHeader';
-import { StickerGrid } from '@/components/album/sticker/StickerGrid';
+import {
+    AlbumSectionPageHeader,
+} from '@/components/album/section/AlbumSectionPageHeader';
+
+import {
+    STICKER_COLUMNS,
+    StickerGrid,
+} from '@/components/album/sticker/StickerGrid';
+
 import { theme } from '@/constants/theme';
+
 import type {
     AlbumSection,
     StickerWithState,
 } from '@/types/album';
-import { attachStickerState } from '@/utils/stickerState';
+
+import {
+    attachStickerState,
+} from '@/utils/stickerState';
 
 type StickerCollection = Record<
     string,
@@ -64,15 +75,24 @@ interface AlbumSectionPageProps {
     snapToOffsets?: number[];
 
     onScrollBeginDrag?: (
-        event: NativeSyntheticEvent<NativeScrollEvent>
+        event:
+        NativeSyntheticEvent<
+            NativeScrollEvent
+        >
     ) => void;
 
     onScrollEndDrag?: (
-        event: NativeSyntheticEvent<NativeScrollEvent>
+        event:
+        NativeSyntheticEvent<
+            NativeScrollEvent
+        >
     ) => void;
 
     onMomentumScrollEnd?: (
-        event: NativeSyntheticEvent<NativeScrollEvent>
+        event:
+        NativeSyntheticEvent<
+            NativeScrollEvent
+        >
     ) => void;
 }
 
@@ -107,7 +127,10 @@ function calculateSectionSummary(
 
     const uniqueOwned =
         section.stickers.reduce(
-            (total, sticker) => {
+            (
+                total,
+                sticker
+            ) => {
                 const copies =
                     normalizeCopies(
                         collection[
@@ -117,7 +140,11 @@ function calculateSectionSummary(
 
                 return (
                     total +
-                    (copies > 0 ? 1 : 0)
+                    (
+                        copies > 0
+                            ? 1
+                            : 0
+                    )
                 );
             },
             0
@@ -154,46 +181,84 @@ function AlbumSectionPageComponent({
                                        onScrollEndDrag,
                                        onMomentumScrollEnd,
                                    }: AlbumSectionPageProps) {
-    const stickers = useMemo(
-        () =>
-            section.stickers.map(
-                (sticker) =>
-                    attachStickerState(
-                        {
-                            ...sticker,
-                            sectionId:
-                            section.id,
-                            sectionName:
-                            section.name,
-                            federation:
-                            section.federation,
-                        },
-                        collection
-                    )
-            ),
-        [
-            collection,
-            section,
-        ]
-    );
+    const stickers =
+        useMemo(
+            () =>
+                section.stickers.map(
+                    (sticker) =>
+                        attachStickerState(
+                            {
+                                ...sticker,
 
-    const summary = useMemo(
-        () =>
-            calculateSectionSummary(
+                                sectionId:
+                                section.id,
+
+                                sectionName:
+                                section.name,
+
+                                federation:
+                                section.federation,
+                            },
+                            collection
+                        )
+                ),
+            [
+                collection,
                 section,
-                collection
-            ),
-        [
-            collection,
-            section,
-        ]
-    );
+            ]
+        );
+
+    const summary =
+        useMemo(
+            () =>
+                calculateSectionSummary(
+                    section,
+                    collection
+                ),
+            [
+                collection,
+                section,
+            ]
+        );
+
+    /*
+     * Sections containing only one sticker row do not have
+     * enough content to reach the normal collapsed snap
+     * position. This invisible footer supplies the missing
+     * scrollable height without changing the visible gap
+     * between the section header and its sticker cards.
+     */
+    const shortSectionFooter =
+        useMemo<
+            ReactElement | null
+        >(() => {
+            if (
+                summary.totalStickers >
+                STICKER_COLUMNS
+            ) {
+                return null;
+            }
+
+            return (
+                <View
+                    pointerEvents="none"
+                    style={{
+                        height:
+                        topSpacerHeight,
+                    }}
+                />
+            );
+        }, [
+            summary.totalStickers,
+            topSpacerHeight,
+        ]);
 
     const listHeader =
         useMemo<ReactElement>(
             () => (
                 <View>
                     <View
+                        pointerEvents="none"
                         style={{
                             height:
                             topSpacerHeight,
@@ -205,7 +270,9 @@ function AlbumSectionPageComponent({
                         sectionIndex={
                             sectionIndex
                         }
-                        name={section.name}
+                        name={
+                            section.name
+                        }
                         federation={
                             section.federation
                         }
@@ -218,10 +285,6 @@ function AlbumSectionPageComponent({
                         percentage={
                             summary
                                 .completionPercentage
-                        }
-                        stickerCount={
-                            section.stickers
-                                .length
                         }
                     />
                 </View>
@@ -254,6 +317,9 @@ function AlbumSectionPageComponent({
                     onDecrementSticker
                 }
                 header={listHeader}
+                footer={
+                    shortSectionFooter
+                }
                 contentTopPadding={0}
                 onScroll={onScroll}
                 scrollEventThrottle={
@@ -287,21 +353,28 @@ function areNumberArraysEqual(
     if (
         !previous ||
         !next ||
-        previous.length !== next.length
+        previous.length !==
+        next.length
     ) {
         return false;
     }
 
     return previous.every(
-        (value, index) =>
-            value === next[index]
+        (
+            value,
+            index
+        ) =>
+            value ===
+            next[index]
     );
 }
 
 function hasSectionCollectionChanged(
     section: AlbumSection,
-    previousCollection: StickerCollection,
-    nextCollection: StickerCollection
+    previousCollection:
+    StickerCollection,
+    nextCollection:
+    StickerCollection
 ): boolean {
     return section.stickers.some(
         (sticker) =>
@@ -375,10 +448,11 @@ function areAlbumSectionPagePropsEqual(
     );
 }
 
-export const AlbumSectionPage = memo(
-    AlbumSectionPageComponent,
-    areAlbumSectionPagePropsEqual
-);
+export const AlbumSectionPage =
+    memo(
+        AlbumSectionPageComponent,
+        areAlbumSectionPagePropsEqual
+    );
 
 const styles = StyleSheet.create({
     page: {

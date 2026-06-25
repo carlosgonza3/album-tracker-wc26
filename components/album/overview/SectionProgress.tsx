@@ -1,10 +1,14 @@
+import * as Haptics from 'expo-haptics';
+
 import {
     memo,
+    useEffect,
     useMemo,
+    useRef,
+    useState,
 } from 'react';
 
 import {
-    Image,
     type ImageResizeMode,
     type ImageSourcePropType,
     StyleSheet,
@@ -12,32 +16,42 @@ import {
     View,
 } from 'react-native';
 
+import Animated, {
+    Easing,
+    interpolate,
+    interpolateColor,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withSequence,
+    withTiming,
+} from 'react-native-reanimated';
+
 import {
     getAlbumSectionArtwork,
-} from '@/components/album/section/AlbumSectionArtwork';
+} from '@/utils/albumSectionArtwork';
 
-import { ProgressBar } from '@/components/ui/ProgressBar';
+import {
+    ProgressBar,
+} from '@/components/ui/ProgressBar';
+
+import {
+    getSectionColors,
+} from '@/constants/sectionColors';
 
 import { theme } from '@/constants/theme';
 
-import type { AlbumSection } from '@/types/album';
+import type {
+    AlbumSection,
+} from '@/types/album';
 
 interface SectionProgressProps {
     name: string;
     federation?: string;
 
-    /**
-     * Pass these from AlbumSectionPage so this component
-     * can resolve the correct flag or special logo using
-     * the same shared logic as AlbumOverviewPage.
-     */
     section?: AlbumSection;
     sectionIndex?: number;
 
-    /**
-     * Optional manual overrides kept for compatibility.
-     * These take priority over the shared artwork lookup.
-     */
     artworkSource?: ImageSourcePropType;
     artworkResizeMode?: ImageResizeMode;
     isLogo?: boolean;
@@ -75,7 +89,10 @@ function clampPercentage(
 
     return Math.max(
         0,
-        Math.min(100, value)
+        Math.min(
+            100,
+            value
+        )
     );
 }
 
@@ -91,66 +108,276 @@ function SectionProgressComponent({
                                       total,
                                       percentage,
                                   }: SectionProgressProps) {
-    const normalizedValues = useMemo(() => {
-        const normalizedTotal =
-            normalizeCount(total);
+    const entranceProgress =
+        useSharedValue(0);
 
-        const normalizedOwned = Math.min(
-            normalizeCount(owned),
-            normalizedTotal
+    const completionGlow =
+        useSharedValue(0);
+
+    const completionSweep =
+        useSharedValue(0);
+
+    const completionBadge =
+        useSharedValue(0);
+
+    const previousCompletedRef =
+        useRef<boolean | null>(
+            null
         );
 
-        const normalizedPercentage =
-            clampPercentage(percentage);
+    const [
+        showCompletionBadge,
+        setShowCompletionBadge,
+    ] = useState(false);
 
-        const missing = Math.max(
-            0,
-            normalizedTotal -
-            normalizedOwned
+    useEffect(() => {
+        entranceProgress.value = 0;
+
+        entranceProgress.value =
+            withTiming(
+                1,
+                {
+                    duration: 260,
+
+                    easing:
+                        Easing.out(
+                            Easing.cubic
+                        ),
+                }
+            );
+    }, [
+        entranceProgress,
+        section?.id,
+    ]);
+
+    const normalizedValues =
+        useMemo(() => {
+            const normalizedTotal =
+                normalizeCount(
+                    total
+                );
+
+            const normalizedOwned =
+                Math.min(
+                    normalizeCount(
+                        owned
+                    ),
+                    normalizedTotal
+                );
+
+            const normalizedPercentage =
+                clampPercentage(
+                    percentage
+                );
+
+            const missing =
+                Math.max(
+                    0,
+                    normalizedTotal -
+                    normalizedOwned
+                );
+
+            return {
+                owned:
+                normalizedOwned,
+
+                total:
+                normalizedTotal,
+
+                missing,
+
+                percentage:
+                normalizedPercentage,
+
+                roundedPercentage:
+                    Math.round(
+                        normalizedPercentage
+                    ),
+
+                isCompleted:
+                    normalizedTotal > 0 &&
+                    normalizedOwned ===
+                    normalizedTotal,
+            };
+        }, [
+            owned,
+            percentage,
+            total,
+        ]);
+
+    useEffect(() => {
+        const wasCompleted =
+            previousCompletedRef.current;
+
+        /*
+         * Record the initial state without celebrating.
+         * This prevents the effect from playing when an
+         * already-complete section is first opened.
+         */
+        if (wasCompleted === null) {
+            previousCompletedRef.current =
+                normalizedValues.isCompleted;
+
+            return;
+        }
+
+        const justCompleted =
+            !wasCompleted &&
+            normalizedValues.isCompleted;
+
+        previousCompletedRef.current =
+            normalizedValues.isCompleted;
+
+        if (!justCompleted) {
+            return;
+        }
+
+        setShowCompletionBadge(
+            true
         );
 
-        const isCompleted =
-            normalizedTotal > 0 &&
-            normalizedOwned ===
-            normalizedTotal;
+        void Haptics.notificationAsync(
+            Haptics
+                .NotificationFeedbackType
+                .Success
+        );
 
-        return {
-            owned: normalizedOwned,
-            total: normalizedTotal,
-            missing,
-            percentage:
-            normalizedPercentage,
-            roundedPercentage:
-                Math.round(
-                    normalizedPercentage
+        completionGlow.value = 0;
+        completionSweep.value = 0;
+        completionBadge.value = 0;
+
+        completionGlow.value =
+            withSequence(
+                withTiming(
+                    1,
+                    {
+                        duration: 280,
+
+                        easing:
+                            Easing.out(
+                                Easing.cubic
+                            ),
+                    }
                 ),
-            isCompleted,
+
+                withTiming(
+                    0.55,
+                    {
+                        duration: 380,
+                    }
+                ),
+
+                withTiming(
+                    1,
+                    {
+                        duration: 240,
+                    }
+                ),
+
+                withTiming(
+                    0,
+                    {
+                        duration: 900,
+
+                        easing:
+                            Easing.inOut(
+                                Easing.cubic
+                            ),
+                    }
+                )
+            );
+
+        completionSweep.value =
+            withDelay(
+                100,
+                withTiming(
+                    1,
+                    {
+                        duration: 900,
+
+                        easing:
+                            Easing.inOut(
+                                Easing.cubic
+                            ),
+                    }
+                )
+            );
+
+        completionBadge.value =
+            withSequence(
+                withDelay(
+                    150,
+                    withTiming(
+                        1,
+                        {
+                            duration: 240,
+
+                            easing:
+                                Easing.out(
+                                    Easing.cubic
+                                ),
+                        }
+                    )
+                ),
+
+                withDelay(
+                    1400,
+                    withTiming(
+                        0,
+                        {
+                            duration: 340,
+
+                            easing:
+                                Easing.in(
+                                    Easing.cubic
+                                ),
+                        }
+                    )
+                )
+            );
+
+        const hideTimer =
+            setTimeout(() => {
+                setShowCompletionBadge(
+                    false
+                );
+            }, 2300);
+
+        return () => {
+            clearTimeout(
+                hideTimer
+            );
         };
     }, [
-        owned,
-        percentage,
-        total,
+        completionBadge,
+        completionGlow,
+        completionSweep,
+        normalizedValues.isCompleted,
     ]);
 
     const resolvedArtwork =
-        useMemo<ResolvedArtwork | null>(() => {
-            /**
-             * Explicit artwork props act as an override.
-             */
+        useMemo<
+            ResolvedArtwork | null
+        >(() => {
             if (artworkSource) {
                 return {
-                    source: artworkSource,
+                    source:
+                    artworkSource,
+
                     resizeMode:
                         artworkResizeMode ??
                         'cover',
+
                     isLogo:
-                        isLogo ?? false,
+                        isLogo ??
+                        false,
                 };
             }
 
             if (
                 !section ||
-                sectionIndex === undefined
+                sectionIndex ===
+                undefined
             ) {
                 return null;
             }
@@ -167,148 +394,540 @@ function SectionProgressComponent({
             sectionIndex,
         ]);
 
+    const colors =
+        useMemo(
+            () =>
+                getSectionColors(
+                    name,
+                    federation
+                ),
+            [
+                federation,
+                name,
+            ]
+        );
+
+    const animatedCardStyle =
+        useAnimatedStyle(() => ({
+            opacity:
+            entranceProgress.value,
+
+            transform: [
+                {
+                    translateY:
+                        interpolate(
+                            entranceProgress.value,
+                            [
+                                0,
+                                1,
+                            ],
+                            [
+                                8,
+                                0,
+                            ]
+                        ),
+                },
+            ],
+        }));
+
+    const completionShellStyle =
+        useAnimatedStyle(() => ({
+            borderColor:
+                interpolateColor(
+                    completionGlow.value,
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        colors.border,
+                        colors.primary,
+                    ]
+                ),
+
+            shadowOpacity:
+                interpolate(
+                    completionGlow.value,
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        0,
+                        0.9,
+                    ]
+                ),
+
+            shadowRadius:
+                interpolate(
+                    completionGlow.value,
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        0,
+                        25,
+                    ]
+                ),
+
+            elevation:
+                interpolate(
+                    completionGlow.value,
+                    [
+                        0,
+                        1,
+                    ],
+                    [
+                        0,
+                        16,
+                    ]
+                ),
+        }));
+
+    const completionOverlayStyle =
+        useAnimatedStyle(() => ({
+            opacity:
+                interpolate(
+                    completionGlow.value,
+                    [
+                        0,
+                        0.25,
+                        1,
+                    ],
+                    [
+                        0,
+                        0.18,
+                        0.65,
+                    ]
+                ),
+        }));
+
+    const completionSweepStyle =
+        useAnimatedStyle(() => ({
+            opacity:
+                interpolate(
+                    completionSweep.value,
+                    [
+                        0,
+                        0.08,
+                        0.82,
+                        1,
+                    ],
+                    [
+                        0,
+                        0.7,
+                        0.7,
+                        0,
+                    ]
+                ),
+
+            transform: [
+                {
+                    translateX:
+                        interpolate(
+                            completionSweep.value,
+                            [
+                                0,
+                                1,
+                            ],
+                            [
+                                -190,
+                                460,
+                            ]
+                        ),
+                },
+                {
+                    rotate:
+                        '-18deg',
+                },
+            ],
+        }));
+
+    const completionBadgeStyle =
+        useAnimatedStyle(() => ({
+            opacity:
+            completionBadge.value,
+
+            transform: [
+                {
+                    translateY:
+                        interpolate(
+                            completionBadge.value,
+                            [
+                                0,
+                                1,
+                            ],
+                            [
+                                -8,
+                                0,
+                            ]
+                        ),
+                },
+            ],
+        }));
+
+    const animatedArtworkStyle =
+        useAnimatedStyle(() => ({
+            opacity:
+                interpolate(
+                    entranceProgress.value,
+                    [
+                        0,
+                        0.6,
+                        1,
+                    ],
+                    [
+                        0,
+                        0.7,
+                        1,
+                    ]
+                ),
+
+            transform: [
+                {
+                    translateX:
+                        interpolate(
+                            entranceProgress.value,
+                            [
+                                0,
+                                1,
+                            ],
+                            [
+                                -8,
+                                0,
+                            ]
+                        ),
+                },
+            ],
+        }));
+
     return (
-        <View style={styles.card}>
-            <View style={styles.mainRow}>
-                <View style={styles.identity}>
-                    <View
+        <Animated.View
+            style={[
+                styles.cardShell,
+                {
+                    borderColor:
+                    colors.border,
+
+                    shadowColor:
+                    colors.primary,
+                },
+                animatedCardStyle,
+                completionShellStyle,
+            ]}
+        >
+            <View
+                style={[
+                    styles.card,
+                    {
+                        backgroundColor:
+                        colors.secondarySoft,
+                    },
+                ]}
+            >
+                <View
+                    pointerEvents="none"
+                    style={[
+                        styles.primaryAccent,
+                        {
+                            backgroundColor:
+                            colors.primary,
+                        },
+                    ]}
+                />
+
+                <View
+                    pointerEvents="none"
+                    style={[
+                        styles.primaryGlow,
+                        {
+                            backgroundColor:
+                            colors.primarySoft,
+                        },
+                    ]}
+                />
+
+                <View
+                    pointerEvents="none"
+                    style={[
+                        styles.secondaryGlow,
+                        {
+                            backgroundColor:
+                            colors.secondarySoft,
+                        },
+                    ]}
+                />
+
+                <Animated.View
+                    pointerEvents="none"
+                    style={[
+                        styles.completionOverlay,
+                        {
+                            backgroundColor:
+                            colors.primary,
+                        },
+                        completionOverlayStyle,
+                    ]}
+                />
+
+                <Animated.View
+                    pointerEvents="none"
+                    style={[
+                        styles.completionSweep,
+                        {
+                            backgroundColor:
+                            colors.primary,
+                        },
+                        completionSweepStyle,
+                    ]}
+                />
+
+                {showCompletionBadge ? (
+                    <Animated.View
+                        pointerEvents="none"
                         style={[
-                            styles.artworkContainer,
-                            resolvedArtwork?.isLogo &&
-                            styles.logoContainer,
+                            styles.completionBadge,
+                            {
+                                borderColor:
+                                colors.border,
+
+                                backgroundColor:
+                                colors.primary,
+                            },
+                            completionBadgeStyle,
                         ]}
                     >
-                        {resolvedArtwork ? (
-                            <Image
-                                source={
-                                    resolvedArtwork.source
-                                }
-                                resizeMode={
-                                    resolvedArtwork.resizeMode
-                                }
+                        <Text
+                            style={
+                                styles.completionBadgeText
+                            }
+                        >
+                            SECTION COMPLETE
+                        </Text>
+                    </Animated.View>
+                ) : null}
+
+                <Animated.View
+                    style={[
+                        styles.artworkContainer,
+                        resolvedArtwork
+                            ?.isLogo &&
+                        styles.logoContainer,
+                        {
+                            borderColor:
+                            colors.border,
+
+                            backgroundColor:
+                            colors.primarySoft,
+                        },
+                        animatedArtworkStyle,
+                    ]}
+                >
+                    {resolvedArtwork ? (
+                        <Animated.Image
+                            source={
+                                resolvedArtwork.source
+                            }
+                            resizeMode={
+                                resolvedArtwork.resizeMode
+                            }
+                            style={[
+                                styles.artwork,
+                                resolvedArtwork.isLogo &&
+                                styles.logoArtwork,
+                            ]}
+                            accessibilityIgnoresInvertColors
+                        />
+                    ) : (
+                        <View
+                            style={
+                                styles.artworkPlaceholder
+                            }
+                        >
+                            <Text
                                 style={[
-                                    styles.artwork,
-                                    resolvedArtwork.isLogo &&
-                                    styles.logoArtwork,
+                                    styles.placeholderLetter,
+                                    {
+                                        color:
+                                        colors.primary,
+                                    },
                                 ]}
-                                accessibilityIgnoresInvertColors
-                            />
-                        ) : (
-                            <View
-                                style={
-                                    styles.artworkPlaceholder
+                            >
+                                {name
+                                    .charAt(0)
+                                    .toUpperCase()}
+                            </Text>
+                        </View>
+                    )}
+                </Animated.View>
+
+                <View
+                    style={
+                        styles.content
+                    }
+                >
+                    <View
+                        style={
+                            styles.topRow
+                        }
+                    >
+                        <View
+                            style={
+                                styles.identity
+                            }
+                        >
+                            <Text
+                                numberOfLines={
+                                    1
                                 }
-                            />
-                        )}
+                                style={
+                                    styles.name
+                                }
+                            >
+                                {name}
+                            </Text>
+
+                            {federation ? (
+                                <Text
+                                    numberOfLines={
+                                        1
+                                    }
+                                    style={
+                                        styles.federation
+                                    }
+                                >
+                                    {
+                                        federation
+                                    }
+                                </Text>
+                            ) : null}
+                        </View>
+
+                        <Text
+                            style={[
+                                styles.percentage,
+                                {
+                                    color:
+                                        normalizedValues
+                                            .isCompleted
+                                            ? theme
+                                                .colors
+                                                .owned
+                                            : colors.primary,
+                                },
+                            ]}
+                        >
+                            {
+                                normalizedValues
+                                    .roundedPercentage
+                            }
+                            %
+                        </Text>
                     </View>
 
                     <View
                         style={
-                            styles.textContainer
+                            styles.progressRow
                         }
                     >
-                        <Text
-                            numberOfLines={2}
-                            style={styles.name}
-                        >
-                            {name}
-                        </Text>
-
-                        {federation ? (
-                            <Text
-                                style={
-                                    styles.federation
-                                }
-                            >
-                                {federation}
-                            </Text>
-                        ) : null}
-                    </View>
-                </View>
-
-                <View
-                    style={
-                        styles.missingSummary
-                    }
-                >
-                    <Text
-                        style={
-                            styles.missingValue
-                        }
-                    >
-                        {
-                            normalizedValues
-                                .missing
-                        }
-                    </Text>
-
-                    <Text
-                        style={
-                            styles.missingLabel
-                        }
-                    >
-                        Missing
-                    </Text>
-                </View>
-            </View>
-
-            <View style={styles.progressArea}>
-                <View
-                    style={
-                        styles.progressHeader
-                    }
-                >
-                    <View style={styles.progressCopy}>
-                        <Text
+                        <View
                             style={
-                                styles.progressTitle
+                                styles.progressWrapper
                             }
                         >
-                            Section progress
-                        </Text>
+                            <ProgressBar
+                                progress={
+                                    normalizedValues
+                                        .percentage
+                                }
+                            />
+                        </View>
 
                         <Text
                             style={
-                                styles.collectionCount
+                                styles.count
                             }
                         >
                             {
                                 normalizedValues
                                     .owned
                             }
-                            {' of '}
+                            /
                             {
                                 normalizedValues
                                     .total
                             }
-                            {' collected'}
                         </Text>
                     </View>
 
-                    <Text
-                        style={[
-                            styles.progressPercentage,
-                            normalizedValues
-                                .isCompleted &&
-                            styles
-                                .progressPercentageCompleted,
-                        ]}
-                    >
-                        {
-                            normalizedValues
-                                .roundedPercentage
+                    <View
+                        style={
+                            styles.summaryRow
                         }
-                        %
-                    </Text>
-                </View>
+                    >
+                        <View
+                            style={
+                                styles.summaryItem
+                            }
+                        >
+                            <View
+                                style={[
+                                    styles.summaryDot,
+                                    {
+                                        backgroundColor:
+                                        colors.primary,
+                                    },
+                                ]}
+                            />
 
-                <ProgressBar
-                    progress={
-                        normalizedValues.percentage
-                    }
-                />
+                            <Text
+                                style={
+                                    styles.summaryText
+                                }
+                            >
+                                {
+                                    normalizedValues
+                                        .owned
+                                }{' '}
+                                collected
+                            </Text>
+                        </View>
+
+                        <View
+                            style={
+                                styles.summaryDivider
+                            }
+                        />
+
+                        <View
+                            style={
+                                styles.summaryItem
+                            }
+                        >
+                            <View
+                                style={[
+                                    styles.summaryDot,
+                                    styles.missingDot,
+                                ]}
+                            />
+
+                            <Text
+                                style={
+                                    styles.summaryText
+                                }
+                            >
+                                {
+                                    normalizedValues
+                                        .missing
+                                }{' '}
+                                missing
+                            </Text>
+                        </View>
+                    </View>
+                </View>
             </View>
-        </View>
+        </Animated.View>
     );
 }
 
@@ -317,7 +936,8 @@ function areSectionProgressPropsEqual(
     next: SectionProgressProps
 ): boolean {
     return (
-        previous.name === next.name &&
+        previous.name ===
+        next.name &&
         previous.federation ===
         next.federation &&
         previous.section ===
@@ -330,58 +950,138 @@ function areSectionProgressPropsEqual(
         next.artworkResizeMode &&
         previous.isLogo ===
         next.isLogo &&
-        previous.owned === next.owned &&
-        previous.total === next.total &&
+        previous.owned ===
+        next.owned &&
+        previous.total ===
+        next.total &&
         previous.percentage ===
         next.percentage
     );
 }
 
-export const SectionProgress = memo(
-    SectionProgressComponent,
-    areSectionProgressPropsEqual
-);
+export const SectionProgress =
+    memo(
+        SectionProgressComponent,
+        areSectionProgressPropsEqual
+    );
 
 const styles = StyleSheet.create({
-    card: {
+    cardShell: {
+        width: '100%',
+        minHeight: 100,
         marginTop:
-        theme.spacing.lg,
-        padding:
-        theme.spacing.lg,
-        overflow: 'hidden',
+        theme.spacing.sm,
+        overflow: 'visible',
         borderWidth: 1,
-        borderColor:
-        theme.colors.border,
         borderRadius:
         theme.radius.lg,
-        backgroundColor:
-        theme.colors.surface,
+
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
     },
 
-    mainRow: {
+    card: {
+        width: '100%',
+        minHeight: 98,
+        paddingVertical:
+        theme.spacing.md,
+        paddingRight:
+        theme.spacing.md,
+        paddingLeft:
+        theme.spacing.lg,
+        overflow: 'hidden',
         flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: theme.spacing.lg,
+        alignItems: 'center',
+        gap: theme.spacing.md,
+        borderRadius:
+        theme.radius.lg,
     },
 
-    identity: {
-        flex: 1,
-        minWidth: 0,
+    primaryAccent: {
+        position: 'absolute',
+        top: 12,
+        bottom: 12,
+        left: 0,
+        width: 4,
+        borderTopRightRadius:
+        theme.radius.full,
+        borderBottomRightRadius:
+        theme.radius.full,
+    },
+
+    primaryGlow: {
+        position: 'absolute',
+        top: -56,
+        left: -44,
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+    },
+
+    secondaryGlow: {
+        position: 'absolute',
+        right: -58,
+        bottom: -75,
+        width: 170,
+        height: 170,
+        borderRadius: 85,
+        opacity: 0.65,
+    },
+
+    completionOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 4,
+    },
+
+    completionSweep: {
+        position: 'absolute',
+        zIndex: 5,
+        top: -55,
+        bottom: -55,
+        width: 56,
+    },
+
+    completionBadge: {
+        position: 'absolute',
+        zIndex: 20,
+        top: 8,
+        left: '50%',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderWidth: 1,
+        borderRadius:
+        theme.radius.full,
+
+        transform: [
+            {
+                translateX: -65,
+            },
+        ],
+    },
+
+    completionBadgeText: {
+        fontSize: 8,
+        lineHeight: 10,
+        fontWeight:
+        theme.typography.weights.bold,
+        letterSpacing: 0.8,
+        color:
+        theme.colors.textInverse,
     },
 
     artworkContainer: {
-        width: 104,
+        width: 72,
         height: 72,
+        zIndex: 6,
+        flexShrink: 0,
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,
-        borderColor:
-            'rgba(245, 197, 24, 0.26)',
         borderRadius:
         theme.radius.md,
-        backgroundColor:
-            'rgba(245, 197, 24, 0.06)',
     },
 
     logoContainer: {
@@ -404,118 +1104,123 @@ const styles = StyleSheet.create({
     artworkPlaceholder: {
         width: '100%',
         height: '100%',
-        backgroundColor:
-            'rgba(255,255,255,0.03)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
-    textContainer: {
+    placeholderLetter: {
+        fontSize: 28,
+        fontWeight:
+        theme.typography.weights.bold,
+    },
+
+    content: {
+        flex: 1,
+        zIndex: 6,
         minWidth: 0,
-        marginTop:
-        theme.spacing.md,
+    },
+
+    topRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent:
+            'space-between',
+        gap: theme.spacing.sm,
+    },
+
+    identity: {
+        flex: 1,
+        minWidth: 0,
     },
 
     name: {
-        fontSize: 28,
-        lineHeight: 32,
+        fontSize:
+        theme.typography.sizes.lg,
+        lineHeight: 23,
         fontWeight:
         theme.typography.weights.bold,
-        letterSpacing: -0.6,
+        letterSpacing: -0.3,
         color:
         theme.colors.textPrimary,
     },
 
     federation: {
-        marginTop:
-        theme.spacing.xs,
-        flexShrink: 1,
+        marginTop: 1,
         fontSize:
-        theme.typography.sizes.sm,
-        lineHeight: 20,
+        theme.typography.sizes.xs,
+        lineHeight: 15,
         color:
         theme.colors.textSecondary,
     },
 
-    missingSummary: {
-        minWidth: 72,
+    percentage: {
         flexShrink: 0,
-        alignItems: 'flex-end',
-        paddingTop:
-        theme.spacing.xs,
-    },
-
-    missingValue: {
-        fontSize: 26,
-        lineHeight: 30,
+        fontSize:
+        theme.typography.sizes.lg,
+        lineHeight: 23,
         fontWeight:
         theme.typography.weights.bold,
-        letterSpacing: -0.5,
-        color:
-        theme.colors.textPrimary,
     },
 
-    missingLabel: {
-        marginTop: 2,
-        fontSize: 10,
-        fontWeight:
-        theme.typography.weights.semibold,
-        letterSpacing: 0.8,
-        textTransform: 'uppercase',
-        color:
-        theme.colors.textMuted,
-    },
-
-    progressArea: {
+    progressRow: {
         marginTop:
-        theme.spacing.xl,
-        paddingTop:
-        theme.spacing.md,
-        borderTopWidth: 1,
-        borderTopColor:
-            'rgba(255,255,255,0.06)',
-    },
-
-    progressHeader: {
-        marginBottom:
         theme.spacing.sm,
         flexDirection: 'row',
-        alignItems: 'flex-end',
-        justifyContent:
-            'space-between',
-        gap: theme.spacing.md,
+        alignItems: 'center',
+        gap: theme.spacing.sm,
     },
 
-    progressCopy: {
+    progressWrapper: {
         flex: 1,
         minWidth: 0,
     },
 
-    progressTitle: {
-        fontSize:
-        theme.typography.sizes.xs,
+    count: {
+        minWidth: 36,
+        textAlign: 'right',
+        fontSize: 10,
         fontWeight:
         theme.typography.weights.semibold,
-        color:
-        theme.colors.textSecondary,
-    },
-
-    collectionCount: {
-        marginTop: 3,
-        fontSize: 11,
         color:
         theme.colors.textMuted,
     },
 
-    progressPercentage: {
-        flexShrink: 0,
-        fontSize:
-        theme.typography.sizes.lg,
-        lineHeight: 24,
-        fontWeight:
-        theme.typography.weights.bold,
-        color: theme.colors.gold,
+    summaryRow: {
+        marginTop: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 7,
     },
 
-    progressPercentageCompleted: {
-        color: theme.colors.owned,
+    summaryItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+    },
+
+    summaryDot: {
+        width: 5,
+        height: 5,
+        borderRadius:
+        theme.radius.full,
+    },
+
+    missingDot: {
+        backgroundColor:
+        theme.colors.textMuted,
+    },
+
+    summaryText: {
+        fontSize: 9,
+        lineHeight: 12,
+        color:
+        theme.colors.textMuted,
+    },
+
+    summaryDivider: {
+        width: 1,
+        height: 9,
+        backgroundColor:
+            'rgba(255,255,255,0.10)',
     },
 });

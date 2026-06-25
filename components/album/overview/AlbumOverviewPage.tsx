@@ -23,7 +23,7 @@ import Animated from 'react-native-reanimated';
 
 import {
     getAlbumSectionArtwork,
-} from '@/components/album/section/AlbumSectionArtwork';
+} from '@/utils/albumSectionArtwork';
 
 import { theme } from '@/constants/theme';
 

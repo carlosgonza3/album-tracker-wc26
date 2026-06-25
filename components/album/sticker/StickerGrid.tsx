@@ -25,7 +25,11 @@ import { theme } from '@/constants/theme';
 import type { StickerWithState } from '@/types/album';
 
 interface StickerGridProps {
+
+    header?: ReactElement | null;
+    footer?: ReactElement | null;
     stickers: StickerWithState[];
+
     invertSwipeDirections: boolean;
 
     onIncrementSticker: (
@@ -35,8 +39,6 @@ interface StickerGridProps {
     onDecrementSticker: (
         stickerId: string
     ) => void;
-
-    header?: ReactElement | null;
 
     contentTopPadding?: number;
     contentBottomPadding?: number;
@@ -59,7 +61,7 @@ interface StickerGridProps {
     ) => void;
 }
 
-const STICKER_COLUMNS = 3
+export const STICKER_COLUMNS = 3
 
 function StickerGridComponent(
     {
@@ -69,6 +71,7 @@ function StickerGridComponent(
         onDecrementSticker,
         header = null,
         contentTopPadding = 0,
+        footer,
 
         /*
          * The bottom navigation already occupies its own
@@ -124,6 +127,9 @@ function StickerGridComponent(
             ref={ref}
             style={styles.list}
             data={stickers}
+            ListFooterComponent={
+                footer
+            }
             keyExtractor={keyExtractor}
             renderItem={renderSticker}
             numColumns={STICKER_COLUMNS}
