@@ -683,9 +683,7 @@ function createMissingCsv(
 function createRepeatedCsv(
     stickers: CollectionStickerResult[]
 ): string {
-    const rows: Array<
-        Array<string | number>
-    > = [
+    const rows: (string | number)[][] = [
         [
             'ID',
             'Section',
@@ -733,7 +731,7 @@ function createRepeatedList(
 
 function createCsvRow(
     values:
-    Array<string | number>
+    (string | number)[]
 ): string {
     return values
         .map((value) =>

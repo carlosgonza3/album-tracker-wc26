@@ -19,8 +19,8 @@ import Animated, {
     useEvent,
 } from 'react-native-reanimated';
 
-import { AlbumOverviewPage } from '@/components/album/AlbumOverviewPage';
-import { AlbumSectionPage } from '@/components/album/AlbumSectionPage';
+import { AlbumOverviewPage } from '@/components/album/overview/AlbumOverviewPage';
+import { AlbumSectionPage } from '@/components/album/section/AlbumSectionPage';
 import { theme } from '@/constants/theme';
 import type {
     AlbumSection,

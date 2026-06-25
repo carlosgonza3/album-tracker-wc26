@@ -41,6 +41,7 @@ interface UseAlbumScrollOptions {
     activeSectionId: string;
     sectionChangeBehavior?: AlbumSectionScrollBehavior;
     interactionThreshold?: number;
+    sharedScrollY?: SharedValue<number>;
 }
 
 export interface AlbumScroll {
@@ -105,6 +106,7 @@ export function useAlbumScroll({
                                    activeSectionId,
                                    sectionChangeBehavior = 'preserve',
                                    interactionThreshold = 0.9,
+                                   sharedScrollY,
                                }: UseAlbumScrollOptions): AlbumScroll {
     const normalizedSnapOffset = Math.max(
         1,
@@ -124,7 +126,12 @@ export function useAlbumScroll({
         normalizedSnapOffset *
         normalizedInteractionThreshold;
 
-    const scrollY = useSharedValue(0);
+    const internalScrollY =
+        useSharedValue(0);
+
+    const scrollY =
+        sharedScrollY ??
+        internalScrollY;
 
     /*
      * Expanded overview:

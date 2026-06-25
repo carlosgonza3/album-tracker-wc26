@@ -18,8 +18,10 @@ import {
 
 import Animated from 'react-native-reanimated';
 
-import { StickerCard } from '@/components/album/StickerCard';
+import { StickerCard } from '@/components/album/sticker/StickerCard';
+
 import { theme } from '@/constants/theme';
+
 import type { StickerWithState } from '@/types/album';
 
 interface StickerGridProps {

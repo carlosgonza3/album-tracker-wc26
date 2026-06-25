@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ALBUM_HEADER_COLLAPSED_HEIGHT } from '@/components/album/CollapsibleAlbumHeader';
+import { ALBUM_HEADER_COLLAPSED_HEIGHT } from '@/components/album/header/CollapsibleAlbumHeader';
 
 const DEFAULT_BOTTOM_NAVIGATION_HEIGHT = 72;
 const DEFAULT_MINIMUM_EXPANDED_HEIGHT = 560;
@@ -105,8 +105,7 @@ export function useAlbumLayout(
          * The shared Album Sections toolbar sits directly
          * below the compact album header.
          */
-        const sharedSectionHeaderTop =
-            collapsedHeaderHeight;
+        const sharedSectionHeaderTop = 0;
 
         const sharedSectionHeaderBottom =
             sharedSectionHeaderTop +
@@ -123,7 +122,7 @@ export function useAlbumLayout(
          * begins directly below both fixed layers.
          */
         const sectionContentSpacerHeight =
-            expandedHeaderHeight +
+            headerCollapseDistance +
             sharedSectionHeaderHeight;
 
         const sectionContentStartOffset =

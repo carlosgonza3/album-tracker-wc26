@@ -17,10 +17,10 @@ interface CollectionSearchControlsProps {
     onChangeFilter: (filter: CollectionFilter) => void;
 }
 
-const filters: Array<{
+const filters: {
     label: string;
     value: CollectionFilter;
-}> = [
+}[] = [
     {
         label: 'All',
         value: 'all',

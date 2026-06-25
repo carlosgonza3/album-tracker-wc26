@@ -17,7 +17,7 @@ import Animated, {
     useAnimatedStyle,
 } from 'react-native-reanimated';
 
-import { SectionSelector } from '@/components/album/SectionSelector';
+import { SectionSelector } from '@/components/album/navigation/SectionSelector';
 import { theme } from '@/constants/theme';
 import type { AlbumSection } from '@/types/album';
 

@@ -14,9 +14,12 @@ import {
 
 import {
     getAlbumSectionArtwork,
-} from '@/components/album/AlbumSectionArtwork';
+} from '@/components/album/section/AlbumSectionArtwork';
+
 import { ProgressBar } from '@/components/ui/ProgressBar';
+
 import { theme } from '@/constants/theme';
+
 import type { AlbumSection } from '@/types/album';
 
 interface SectionProgressProps {

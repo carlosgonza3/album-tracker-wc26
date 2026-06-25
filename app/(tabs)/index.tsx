@@ -1,3 +1,3 @@
-import { AlbumScreen } from '@/components/album/AlbumScreen';
+import { AlbumScreen } from '@/components/album/screen/AlbumScreen';
 
 export default AlbumScreen;

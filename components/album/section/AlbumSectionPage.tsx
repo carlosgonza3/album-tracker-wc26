@@ -14,8 +14,8 @@ import {
     View,
 } from 'react-native';
 
-import { AlbumSectionPageHeader } from '@/components/album/AlbumSectionPageHeader';
-import { StickerGrid } from '@/components/album/StickerGrid';
+import { AlbumSectionPageHeader } from '@/components/album/section/AlbumSectionPageHeader';
+import { StickerGrid } from '@/components/album/sticker/StickerGrid';
 import { theme } from '@/constants/theme';
 import type {
     AlbumSection,

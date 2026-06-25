@@ -1,11 +1,12 @@
 import {
     useCallback,
     useEffect,
-    useMemo,
     useRef,
 } from 'react';
 
-import { useLocalSearchParams } from 'expo-router';
+import {
+    useLocalSearchParams,
+} from 'expo-router';
 
 import {
     type FlatList,
@@ -13,43 +14,54 @@ import {
     View,
 } from 'react-native';
 
-import { AlbumSectionPager } from '@/components/album/AlbumSectionPager';
-import { AlbumSectionToolbar } from '@/components/album/AlbumSectionToolbar';
 import {
-    type AlbumHeaderSummary,
-    CollapsibleAlbumHeader,
-} from '@/components/album/CollapsibleAlbumHeader';
+    AlbumSectionPager,
+} from '@/components/album/navigation/AlbumSectionPager';
+
+import {
+    AlbumSectionToolbar,
+} from '@/components/album/navigation/AlbumSectionToolbar';
+
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
-import { useAlbumLayout } from '@/hooks/album/useAlbumLayout';
-import { useAlbumNavigation } from '@/hooks/album/useAlbumNavigation';
-import { useAlbumScroll } from '@/hooks/album/useAlbumScroll';
-import { useSettings } from '@/hooks/useSettings';
-import { useStickers } from '@/hooks/useStickers';
+
+import {
+    useAlbumHeader,
+} from '@/hooks/album/useAlbumHeader';
+
+import {
+    useAlbumLayout,
+} from '@/hooks/album/useAlbumLayout';
+
+import {
+    useAlbumNavigation,
+} from '@/hooks/album/useAlbumNavigation';
+
+import {
+    useAlbumScroll,
+} from '@/hooks/album/useAlbumScroll';
+
+import {
+    useSettings,
+} from '@/hooks/useSettings';
+
+import {
+    useStickers,
+} from '@/hooks/useStickers';
+
 import type {
     AlbumSection,
     StickerWithState,
 } from '@/types/album';
-import { getCollectionSummary } from '@/utils/albumStats';
 
 const ALBUM_OVERVIEW_ID =
     'album-overview';
 
-function normalizeCopies(
-    copies: number
-): number {
-    if (!Number.isFinite(copies)) {
-        return 0;
-    }
-
-    return Math.max(
-        0,
-        Math.floor(copies)
-    );
-}
-
 function getSingleRouteParam(
-    value: string | string[] | undefined
+    value:
+        string |
+        string[] |
+        undefined
 ): string | undefined {
     return Array.isArray(value)
         ? value[0]
@@ -74,15 +86,21 @@ export function AlbumScreen() {
         useRef<string | null>(null);
 
     const {
-        safeAreaTop,
-        expandedHeaderHeight,
         albumSectionsSnapOffset,
         sharedSectionHeaderHeight,
         sharedSectionHeaderTop,
         sectionContentSpacerHeight,
     } = useAlbumLayout();
 
-    const { settings } = useSettings();
+    const {
+        scrollY:
+            sharedHeaderScrollY,
+
+        registerScrollActions,
+    } = useAlbumHeader();
+
+    const { settings } =
+        useSettings();
 
     const {
         collection,
@@ -181,11 +199,40 @@ export function AlbumScreen() {
         scrollToSections,
     } = useAlbumScroll({
         albumSectionsSnapOffset,
+
         activeSectionId:
         selectedSectionId,
+
         sectionChangeBehavior:
             'section-start',
+
+        sharedScrollY:
+        sharedHeaderScrollY,
     });
+
+    /*
+     * Give the global header access to the existing
+     * Album-list transitions.
+     *
+     * The global header still collapses and expands by
+     * moving every mounted Album list exactly as before.
+     */
+    useEffect(() => {
+        registerScrollActions({
+            scrollToAlbumCover,
+            scrollToSections,
+        });
+
+        return () => {
+            registerScrollActions(
+                null
+            );
+        };
+    }, [
+        registerScrollActions,
+        scrollToAlbumCover,
+        scrollToSections,
+    ]);
 
     /*
      * Register the Overview FlatList with the same scroll
@@ -195,7 +242,8 @@ export function AlbumScreen() {
         useCallback(
             (
                 instance:
-                    FlatList<AlbumSection> | null
+                    FlatList<AlbumSection> |
+                    null
             ) => {
                 const registerOverviewList =
                     getSectionListRef(
@@ -204,92 +252,12 @@ export function AlbumScreen() {
 
                 registerOverviewList(
                     instance as unknown as
-                        FlatList<StickerWithState> | null
+                        FlatList<StickerWithState> |
+                        null
                 );
             },
             [
                 getSectionListRef,
-            ]
-        );
-
-    const albumSummary =
-        useMemo(
-            () =>
-                getCollectionSummary(
-                    albumCatalogue,
-                    collection
-                ),
-            [
-                collection,
-            ]
-        );
-
-    const repeatedCopies =
-        useMemo(
-            () =>
-                Object.values(
-                    collection
-                ).reduce(
-                    (
-                        total,
-                        copies
-                    ) => {
-                        const normalizedCopies =
-                            normalizeCopies(
-                                copies
-                            );
-
-                        return (
-                            total +
-                            Math.max(
-                                0,
-                                normalizedCopies -
-                                1
-                            )
-                        );
-                    },
-                    0
-                ),
-            [
-                collection,
-            ]
-        );
-
-    const albumHeaderSummary =
-        useMemo<AlbumHeaderSummary>(
-            () => {
-                const remaining =
-                    Math.max(
-                        0,
-                        albumSummary
-                            .totalStickers -
-                        albumSummary
-                            .uniqueOwned
-                    );
-
-                return {
-                    collected:
-                    albumSummary
-                        .uniqueOwned,
-                    remaining,
-                    repeated:
-                    repeatedCopies,
-                    total:
-                    albumSummary
-                        .totalStickers,
-                    percentage:
-                    albumSummary
-                        .completionPercentage,
-                };
-            },
-            [
-                albumSummary
-                    .completionPercentage,
-                albumSummary
-                    .totalStickers,
-                albumSummary
-                    .uniqueOwned,
-                repeatedCopies,
             ]
         );
 
@@ -342,20 +310,6 @@ export function AlbumScreen() {
             );
         }, [
             synchronizeSectionScroll,
-        ]);
-
-    const handleCollapseHeader =
-        useCallback(() => {
-            scrollToSections(true);
-        }, [
-            scrollToSections,
-        ]);
-
-    const handleExpandHeader =
-        useCallback(() => {
-            scrollToAlbumCover(true);
-        }, [
-            scrollToAlbumCover,
         ]);
 
     return (
@@ -427,27 +381,6 @@ export function AlbumScreen() {
                 }
                 onVerticalMomentumEnd={
                     handleVerticalMomentumEnd
-                }
-            />
-
-            <CollapsibleAlbumHeader
-                scrollY={
-                    scrollY
-                }
-                expandedHeight={
-                    expandedHeaderHeight
-                }
-                safeAreaTop={
-                    safeAreaTop
-                }
-                summary={
-                    albumHeaderSummary
-                }
-                onCollapseHeader={
-                    handleCollapseHeader
-                }
-                onExpandHeader={
-                    handleExpandHeader
                 }
             />
 

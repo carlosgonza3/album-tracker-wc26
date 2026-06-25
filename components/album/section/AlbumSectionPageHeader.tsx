@@ -2,11 +2,10 @@ import { memo } from 'react';
 
 import {
     StyleSheet,
-    Text,
     View,
 } from 'react-native';
 
-import { SectionProgress } from '@/components/album/SectionProgress';
+import { SectionProgress } from '@/components/album/overview/SectionProgress';
 import { theme } from '@/constants/theme';
 import type { AlbumSection } from '@/types/album';
 
