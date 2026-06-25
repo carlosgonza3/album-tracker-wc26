@@ -31,9 +31,9 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="export"
+                name="share"
                 options={{
-                    title: 'Export',
+                    title: 'Share',
                 }}
             />
 
