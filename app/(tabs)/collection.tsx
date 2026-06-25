@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import {
-    Animated,
+    Animated as RNAnimated,
     Pressable,
     SafeAreaView,
     ScrollView,
@@ -46,6 +46,7 @@ type CollectionView =
     | 'stats';
 
 export default function CollectionScreen() {
+
     const router = useRouter();
 
     const { collection, isHydrated } =
@@ -63,6 +64,7 @@ export default function CollectionScreen() {
         isHeaderCollapsed,
         setIsHeaderCollapsed,
     ] = useState(false);
+
 
     const summary = useMemo(
         () =>
@@ -282,7 +284,7 @@ function CollapsibleArea({
                              children,
                          }: CollapsibleAreaProps) {
     const progress = useRef(
-        new Animated.Value(
+        new RNAnimated.Value(
             collapsed ? 1 : 0
         )
     ).current;
@@ -298,7 +300,7 @@ function CollapsibleArea({
     useEffect(() => {
         progress.stopAnimation();
 
-        Animated.timing(progress, {
+        RNAnimated.timing(progress, {
             toValue:
                 collapsed ? 1 : 0,
             duration:
@@ -362,7 +364,7 @@ function CollapsibleArea({
             : undefined;
 
     return (
-        <Animated.View
+        <RNAnimated.View
             pointerEvents={
                 collapsed
                     ? 'none'
@@ -397,7 +399,7 @@ function CollapsibleArea({
             >
                 {children}
             </View>
-        </Animated.View>
+        </RNAnimated.View>
     );
 }
 
@@ -873,23 +875,29 @@ function StatsView({
                         styles.sectionProgressList
                     }
                 >
-                    {stats.sections.map(
-                        (section) => (
+                    {[...stats.sections]
+                        .sort((sectionA, sectionB) => {
+                            const progressDifference =
+                                sectionB.completionPercentage -
+                                sectionA.completionPercentage;
+
+                            if (progressDifference !== 0) {
+                                return progressDifference;
+                            }
+
+                            return sectionA.sectionName.localeCompare(
+                                sectionB.sectionName
+                            );
+                        })
+                        .map((section) => (
                             <SectionProgressCard
-                                key={
-                                    section.sectionId
-                                }
-                                section={
-                                    section
-                                }
+                                key={section.sectionId}
+                                section={section}
                                 onPress={() =>
-                                    onPressSection(
-                                        section
-                                    )
+                                    onPressSection(section)
                                 }
                             />
-                        )
-                    )}
+                        ))}
                 </View>
             </View>
         </ScrollView>

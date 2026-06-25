@@ -8,12 +8,13 @@ import {
     Platform,
     Pressable,
     SafeAreaView,
-    ScrollView,
     Share,
     StyleSheet,
     Text,
     View,
 } from 'react-native';
+
+import Animated from 'react-native-reanimated';
 
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
@@ -226,11 +227,12 @@ export default function ShareScreen() {
 
     return (
         <SafeAreaView style={styles.screen}>
-            <ScrollView
+            <Animated.ScrollView
                 style={styles.scroll}
                 contentContainerStyle={
                     styles.content
                 }
+                scrollEventThrottle={16}
                 showsVerticalScrollIndicator={
                     false
                 }
@@ -380,7 +382,7 @@ export default function ShareScreen() {
                         />
                     </>
                 )}
-            </ScrollView>
+            </Animated.ScrollView>
         </SafeAreaView>
     );
 }

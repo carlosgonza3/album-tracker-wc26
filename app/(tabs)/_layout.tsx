@@ -1,8 +1,5 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-
-import {
-    BottomTabBar,
-    type BottomTabBarProps,
+import type {
+    BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
 
 import {
@@ -25,6 +22,10 @@ import {
 } from 'react-native-reanimated';
 
 import {
+    AlbumHeaderProvider,
+} from '@/context/AlbumHeaderProvider';
+
+import {
     AlbumHeader,
 } from '@/components/album/header/AlbumHeader';
 
@@ -33,8 +34,8 @@ import type {
 } from '@/components/album/header/albumHeader.types';
 
 import {
-    AlbumHeaderProvider,
-} from '@/context/AlbumHeaderProvider';
+    GlassTabBar,
+} from '@/components/album/navigation/GlassTabBar';
 
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
@@ -70,7 +71,7 @@ function normalizeCopies(
     );
 }
 
-function GlobalAlbumTabs() {
+function GlobalAlbumTabsContent() {
     const {
         safeAreaTop,
         expandedHeaderHeight,
@@ -94,10 +95,10 @@ function GlobalAlbumTabs() {
         HEADER_EXPANDED_THRESHOLD;
 
     /*
-     * Keep the provider state synchronized with the
-     * animated header position.
+     * Keep the React state synchronized with the
+     * animated Album header position.
      *
-     * This covers both:
+     * This covers:
      * - direct header gestures
      * - vertical Album list scrolling
      */
@@ -139,7 +140,7 @@ function GlobalAlbumTabs() {
                 }
 
                 return (
-                    <BottomTabBar
+                    <GlassTabBar
                         {...props}
                     />
                 );
@@ -279,49 +280,14 @@ function GlobalAlbumTabs() {
                     tabBar={renderTabBar}
                     screenOptions={{
                         headerShown: false,
-
-                        tabBarActiveTintColor:
-                        theme.colors.gold,
-
-                        tabBarInactiveTintColor:
-                        theme.colors
-                            .textMuted,
-
-                        tabBarStyle:
-                        styles.tabBar,
-
-                        tabBarLabelStyle: {
-                            fontSize:
-                            theme.typography
-                                .sizes.xs,
-
-                            fontWeight:
-                            theme.typography
-                                .weights
-                                .semibold,
-                        },
+                        tabBarHideOnKeyboard:
+                            true,
                     }}
                 >
                     <Tabs.Screen
                         name="index"
                         options={{
                             title: 'Album',
-
-                            tabBarIcon: ({
-                                             color,
-                                             focused,
-                                             size,
-                                         }) => (
-                                <Ionicons
-                                    name={
-                                        focused
-                                            ? 'book'
-                                            : 'book-outline'
-                                    }
-                                    size={size}
-                                    color={color}
-                                />
-                            ),
                         }}
                     />
 
@@ -330,22 +296,6 @@ function GlobalAlbumTabs() {
                         options={{
                             title:
                                 'Collection',
-
-                            tabBarIcon: ({
-                                             color,
-                                             focused,
-                                             size,
-                                         }) => (
-                                <Ionicons
-                                    name={
-                                        focused
-                                            ? 'albums'
-                                            : 'albums-outline'
-                                    }
-                                    size={size}
-                                    color={color}
-                                />
-                            ),
                         }}
                     />
 
@@ -353,22 +303,6 @@ function GlobalAlbumTabs() {
                         name="share"
                         options={{
                             title: 'Share',
-
-                            tabBarIcon: ({
-                                             color,
-                                             focused,
-                                             size,
-                                         }) => (
-                                <Ionicons
-                                    name={
-                                        focused
-                                            ? 'share-social'
-                                            : 'share-social-outline'
-                                    }
-                                    size={size}
-                                    color={color}
-                                />
-                            ),
                         }}
                     />
 
@@ -377,22 +311,6 @@ function GlobalAlbumTabs() {
                         options={{
                             title:
                                 'Settings',
-
-                            tabBarIcon: ({
-                                             color,
-                                             focused,
-                                             size,
-                                         }) => (
-                                <Ionicons
-                                    name={
-                                        focused
-                                            ? 'settings'
-                                            : 'settings-outline'
-                                    }
-                                    size={size}
-                                    color={color}
-                                />
-                            ),
                         }}
                     />
                 </Tabs>
@@ -401,10 +319,10 @@ function GlobalAlbumTabs() {
     );
 }
 
-export default function TabLayout() {
+export default function GlobalAlbumTabs() {
     return (
         <AlbumHeaderProvider>
-            <GlobalAlbumTabs />
+            <GlobalAlbumTabsContent />
         </AlbumHeaderProvider>
     );
 }
@@ -420,14 +338,6 @@ const styles = StyleSheet.create({
     tabsContainer: {
         flex: 1,
         minHeight: 0,
-    },
-
-    tabBar: {
-        borderTopWidth: 1,
-        borderTopColor:
-        theme.colors.border,
-        backgroundColor:
-        theme.colors.primary,
     },
 
     tabsContainerHidden: {

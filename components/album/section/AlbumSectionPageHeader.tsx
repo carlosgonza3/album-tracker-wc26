@@ -17,20 +17,6 @@ interface AlbumSectionPageHeaderProps {
     owned: number;
     total: number;
     percentage: number;
-    stickerCount: number;
-}
-
-function normalizeStickerCount(
-    value: number
-): number {
-    if (!Number.isFinite(value)) {
-        return 0;
-    }
-
-    return Math.max(
-        0,
-        Math.floor(value)
-    );
 }
 
 function AlbumSectionPageHeaderComponent({
@@ -41,13 +27,7 @@ function AlbumSectionPageHeaderComponent({
                                              owned,
                                              total,
                                              percentage,
-                                             stickerCount,
                                          }: AlbumSectionPageHeaderProps) {
-    const normalizedStickerCount =
-        normalizeStickerCount(
-            stickerCount
-        );
-
     return (
         <View style={styles.container}>
             <SectionProgress
@@ -61,10 +41,6 @@ function AlbumSectionPageHeaderComponent({
                 total={total}
                 percentage={percentage}
             />
-
-            <View style={styles.gridHeadingRow}>
-
-            </View>
         </View>
     );
 }
@@ -78,15 +54,16 @@ function areAlbumSectionPageHeaderPropsEqual(
         next.section &&
         previous.sectionIndex ===
         next.sectionIndex &&
-        previous.name === next.name &&
+        previous.name ===
+        next.name &&
         previous.federation ===
         next.federation &&
-        previous.owned === next.owned &&
-        previous.total === next.total &&
+        previous.owned ===
+        next.owned &&
+        previous.total ===
+        next.total &&
         previous.percentage ===
-        next.percentage &&
-        previous.stickerCount ===
-        next.stickerCount
+        next.percentage
     );
 }
 
@@ -98,67 +75,12 @@ export const AlbumSectionPageHeader = memo(
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal:
-        theme.spacing.xl,
+        theme.spacing.md,
+
         paddingTop:
-        theme.spacing.xl,
-    },
-
-    gridHeadingRow: {
-        marginTop:
-        theme.spacing.xxl,
-        marginBottom:
-        theme.spacing.xl,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent:
-            'space-between',
-        gap: theme.spacing.md,
-    },
-
-    gridCopy: {
-        flex: 1,
-    },
-
-    gridHeading: {
-        fontSize:
-        theme.typography.sizes.lg,
-        fontWeight:
-        theme.typography.weights.bold,
-        color:
-        theme.colors.textPrimary,
-    },
-
-    gridDescription: {
-        marginTop: 6,
-        fontSize:
-        theme.typography.sizes.xs,
-        lineHeight: 18,
-        color:
-        theme.colors.textSecondary,
-    },
-
-    gridCountBadge: {
-        minWidth: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal:
         theme.spacing.sm,
-        paddingVertical: 8,
-        borderWidth: 1,
-        borderColor:
-        theme.colors.border,
-        borderRadius:
-        theme.radius.full,
-        backgroundColor:
-        theme.colors.surface,
-    },
 
-    gridCount: {
-        fontSize:
-        theme.typography.sizes.sm,
-        fontWeight:
-        theme.typography.weights.semibold,
-        color:
-        theme.colors.textPrimary,
+        paddingBottom:
+        theme.spacing.lg,
     },
 });
