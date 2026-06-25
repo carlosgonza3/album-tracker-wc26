@@ -22,7 +22,11 @@ Add your screenshots to `assets/readme/` and replace the placeholders below.
 <p align="center">
     <img src="./assets/readme/album.png" alt="Album screen" width="280" />
     <img src="./assets/readme/album-2.png" alt="Album screen" width="280" />
+<<<<<<< Updated upstream
     <img src="./assets/readme/sectionp.PNG" alt="Section progress screen" width="280" />
+=======
+    <img src="assets/readme/sectionp.png" alt="Section progress screen" width="280" />
+>>>>>>> Stashed changes
 
 </p>
 
@@ -39,7 +43,11 @@ Add your screenshots to `assets/readme/` and replace the placeholders below.
 
 <!-- Replace with your screenshot -->
 <p align="center">
+<<<<<<< Updated upstream
   <img src="./assets/readme/share.PNG" alt="Section progress screen" width="280" />
+=======
+  <img src="assets/readme/share.png" alt="Section progress screen" width="280" />
+>>>>>>> Stashed changes
 </p>
 
 ### Settings
@@ -178,6 +186,33 @@ From the Expo terminal:
 
 ## Running on iOS
 
+<<<<<<< Updated upstream
+=======
+### Option 1: Expo Go
+
+Install the **Expo Go** app from the App Store on your iPhone.
+
+Start the development server:
+
+```bash
+npx expo start --clear
+```
+
+Make sure your computer and iPhone are connected to the same Wi-Fi network, then scan the QR code shown in the terminal or Expo Dev Tools.
+
+You can also press:
+
+```text
+i
+```
+
+to open the project in the iOS Simulator when Expo Go is available there.
+
+> Expo Go is convenient for quick testing, but some native modules or custom native configuration may require a development build instead.
+
+### Option 2: Native iOS build
+
+>>>>>>> Stashed changes
 Install CocoaPods when needed:
 
 ```bash
@@ -190,7 +225,11 @@ Run the native iOS project:
 npx expo run:ios
 ```
 
+<<<<<<< Updated upstream
 To open a specific simulator:
+=======
+To open a specific simulator or connected device:
+>>>>>>> Stashed changes
 
 ```bash
 npx expo run:ios --device
@@ -198,6 +237,7 @@ npx expo run:ios --device
 
 ---
 
+<<<<<<< Updated upstream
 ## Running on Android
 
 Start an Android emulator, then run:
@@ -210,6 +250,8 @@ Make sure Android Studio and the Android SDK are configured correctly.
 
 ---
 
+=======
+>>>>>>> Stashed changes
 ## Project Structure
 
 ```text
