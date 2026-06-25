@@ -423,7 +423,7 @@ function CollapsibleAlbumHeaderComponent({
                                         .tournamentText
                                 }
                             >
-                                WORLD CUP 2026
+                                PANINI
                             </Text>
                         </View>
 
@@ -448,7 +448,7 @@ function CollapsibleAlbumHeaderComponent({
                         <Text
                             style={styles.title}
                         >
-                            My Album
+                            FIFA World Cup 2026
                         </Text>
 
                         <Text
@@ -457,7 +457,7 @@ function CollapsibleAlbumHeaderComponent({
                             }
                         >
                             Track your World Cup
-                            collection, discover what
+                            Official Sticker Collection, discover what
                             is missing, and keep
                             repeated stickers ready
                             to trade.

@@ -25,37 +25,37 @@
         },
         {
           "id": "FWC2",
-          "name": "FIFA World Cup 2026 Official Emblem",
+          "name": "FIFA World Cup Trophy",
           "type": "foil"
         },
         {
           "id": "FWC3",
-          "name": "FIFA World Cup 2026 Official Mascots",
+          "name": "FIFA World Cup 2026 Branding",
           "type": "foil"
         },
         {
           "id": "FWC4",
-          "name": "FIFA World Cup 2026 Official Slogan",
+          "name": "FIFA World Cup 2026 Host Cities",
           "type": "foil"
         },
         {
           "id": "FWC5",
-          "name": "FIFA World Cup 2026 Official Ball",
+          "name": "FIFA World Cup 2026 Tournament Identity",
           "type": "foil"
         },
         {
           "id": "FWC6",
-          "name": "FIFA World Cup 2026 Host Country Emblem",
+          "name": "FIFA World Cup 2026 Special Feature",
           "type": "foil"
         },
         {
           "id": "FWC7",
-          "name": "FIFA World Cup 2026 Host Country Emblem",
+          "name": "FIFA World Cup 2026 Special Feature",
           "type": "foil"
         },
         {
           "id": "FWC8",
-          "name": "FIFA World Cup 2026 Host Country Emblem",
+          "name": "FIFA World Cup 2026 Special Feature",
           "type": "foil"
         }
       ]
@@ -127,7 +127,7 @@
         },
         {
           "id": "MEX13",
-          "name": "Mexico Team Photo",
+          "name": "MEX 13",
           "type": "sticker"
         },
         {
@@ -234,7 +234,7 @@
         },
         {
           "id": "RSA13",
-          "name": "South Africa Team Photo",
+          "name": "RSA 13",
           "type": "sticker"
         },
         {
@@ -341,7 +341,7 @@
         },
         {
           "id": "KOR13",
-          "name": "Korea Republic Team Photo",
+          "name": "KOR 13",
           "type": "sticker"
         },
         {
@@ -448,7 +448,7 @@
         },
         {
           "id": "CZE13",
-          "name": "Czechia Team Photo",
+          "name": "CZE 13",
           "type": "sticker"
         },
         {
@@ -555,7 +555,7 @@
         },
         {
           "id": "CAN13",
-          "name": "Canada Team Photo",
+          "name": "CAN 13",
           "type": "sticker"
         },
         {
@@ -662,7 +662,7 @@
         },
         {
           "id": "BIH13",
-          "name": "Bosnia-Herzegovina Team Photo",
+          "name": "BIH 13",
           "type": "sticker"
         },
         {
@@ -769,7 +769,7 @@
         },
         {
           "id": "QAT13",
-          "name": "Qatar Team Photo",
+          "name": "QAT 13",
           "type": "sticker"
         },
         {
@@ -876,7 +876,7 @@
         },
         {
           "id": "SUI13",
-          "name": "Switzerland Team Photo",
+          "name": "SUI 13",
           "type": "sticker"
         },
         {
@@ -983,7 +983,7 @@
         },
         {
           "id": "BRA13",
-          "name": "Brazil Team Photo",
+          "name": "BRA 13",
           "type": "sticker"
         },
         {
@@ -1090,7 +1090,7 @@
         },
         {
           "id": "MAR13",
-          "name": "Morocco Team Photo",
+          "name": "MAR 13",
           "type": "sticker"
         },
         {
@@ -1197,7 +1197,7 @@
         },
         {
           "id": "HAI13",
-          "name": "Haiti Team Photo",
+          "name": "HAI 13",
           "type": "sticker"
         },
         {
@@ -1304,7 +1304,7 @@
         },
         {
           "id": "SCO13",
-          "name": "Scotland Team Photo",
+          "name": "SCO 13",
           "type": "sticker"
         },
         {
@@ -1411,7 +1411,7 @@
         },
         {
           "id": "USA13",
-          "name": "USA Team Photo",
+          "name": "USA 13",
           "type": "sticker"
         },
         {
@@ -1518,7 +1518,7 @@
         },
         {
           "id": "PAR13",
-          "name": "Paraguay Team Photo",
+          "name": "PAR 13",
           "type": "sticker"
         },
         {
@@ -1625,7 +1625,7 @@
         },
         {
           "id": "AUS13",
-          "name": "Australia Team Photo",
+          "name": "AUS 13",
           "type": "sticker"
         },
         {
@@ -1732,7 +1732,7 @@
         },
         {
           "id": "TUR13",
-          "name": "Türkiye Team Photo",
+          "name": "TUR 13",
           "type": "sticker"
         },
         {
@@ -1839,7 +1839,7 @@
         },
         {
           "id": "GER13",
-          "name": "Germany Team Photo",
+          "name": "GER 13",
           "type": "sticker"
         },
         {
@@ -1946,7 +1946,7 @@
         },
         {
           "id": "CUW13",
-          "name": "Curaçao Team Photo",
+          "name": "CUW 13",
           "type": "sticker"
         },
         {
@@ -2053,7 +2053,7 @@
         },
         {
           "id": "CIV13",
-          "name": "Côte d'Ivoire Team Photo",
+          "name": "CIV 13",
           "type": "sticker"
         },
         {
@@ -2160,7 +2160,7 @@
         },
         {
           "id": "ECU13",
-          "name": "Ecuador Team Photo",
+          "name": "ECU 13",
           "type": "sticker"
         },
         {
@@ -2267,7 +2267,7 @@
         },
         {
           "id": "NED13",
-          "name": "Netherlands Team Photo",
+          "name": "NED 13",
           "type": "sticker"
         },
         {
@@ -2374,7 +2374,7 @@
         },
         {
           "id": "JPN13",
-          "name": "Japan Team Photo",
+          "name": "JPN 13",
           "type": "sticker"
         },
         {
@@ -2481,7 +2481,7 @@
         },
         {
           "id": "SWE13",
-          "name": "Sweden Team Photo",
+          "name": "SWE 13",
           "type": "sticker"
         },
         {
@@ -2588,7 +2588,7 @@
         },
         {
           "id": "TUN13",
-          "name": "Tunisia Team Photo",
+          "name": "TUN 13",
           "type": "sticker"
         },
         {
@@ -2695,7 +2695,7 @@
         },
         {
           "id": "BEL13",
-          "name": "Belgium Team Photo",
+          "name": "BEL 13",
           "type": "sticker"
         },
         {
@@ -2802,7 +2802,7 @@
         },
         {
           "id": "EGY13",
-          "name": "Egypt Team Photo",
+          "name": "EGY 13",
           "type": "sticker"
         },
         {
@@ -2909,7 +2909,7 @@
         },
         {
           "id": "IRN13",
-          "name": "IR Iran Team Photo",
+          "name": "IRN 13",
           "type": "sticker"
         },
         {
@@ -3016,7 +3016,7 @@
         },
         {
           "id": "NZL13",
-          "name": "New Zealand Team Photo",
+          "name": "NZL 13",
           "type": "sticker"
         },
         {
@@ -3123,7 +3123,7 @@
         },
         {
           "id": "ESP13",
-          "name": "Spain Team Photo",
+          "name": "ESP 13",
           "type": "sticker"
         },
         {
@@ -3230,7 +3230,7 @@
         },
         {
           "id": "CPV13",
-          "name": "Cabo Verde Team Photo",
+          "name": "CPV 13",
           "type": "sticker"
         },
         {
@@ -3337,7 +3337,7 @@
         },
         {
           "id": "KSA13",
-          "name": "Saudi Arabia Team Photo",
+          "name": "KSA 13",
           "type": "sticker"
         },
         {
@@ -3444,7 +3444,7 @@
         },
         {
           "id": "URU13",
-          "name": "Uruguay Team Photo",
+          "name": "URU 13",
           "type": "sticker"
         },
         {
@@ -3551,7 +3551,7 @@
         },
         {
           "id": "FRA13",
-          "name": "France Team Photo",
+          "name": "FRA 13",
           "type": "sticker"
         },
         {
@@ -3658,7 +3658,7 @@
         },
         {
           "id": "SEN13",
-          "name": "Senegal Team Photo",
+          "name": "SEN 13",
           "type": "sticker"
         },
         {
@@ -3765,7 +3765,7 @@
         },
         {
           "id": "IRQ13",
-          "name": "Iraq Team Photo",
+          "name": "IRQ 13",
           "type": "sticker"
         },
         {
@@ -3872,7 +3872,7 @@
         },
         {
           "id": "NOR13",
-          "name": "Norway Team Photo",
+          "name": "NOR 13",
           "type": "sticker"
         },
         {
@@ -3979,7 +3979,7 @@
         },
         {
           "id": "ARG13",
-          "name": "Argentina Team Photo",
+          "name": "ARG 13",
           "type": "sticker"
         },
         {
@@ -4086,7 +4086,7 @@
         },
         {
           "id": "ALG13",
-          "name": "Algeria Team Photo",
+          "name": "ALG 13",
           "type": "sticker"
         },
         {
@@ -4193,7 +4193,7 @@
         },
         {
           "id": "AUT13",
-          "name": "Austria Team Photo",
+          "name": "AUT 13",
           "type": "sticker"
         },
         {
@@ -4300,7 +4300,7 @@
         },
         {
           "id": "JOR13",
-          "name": "Jordan Team Photo",
+          "name": "JOR 13",
           "type": "sticker"
         },
         {
@@ -4407,7 +4407,7 @@
         },
         {
           "id": "POR13",
-          "name": "Portugal Team Photo",
+          "name": "POR 13",
           "type": "sticker"
         },
         {
@@ -4514,7 +4514,7 @@
         },
         {
           "id": "COD13",
-          "name": "Congo DR Team Photo",
+          "name": "COD 13",
           "type": "sticker"
         },
         {
@@ -4621,7 +4621,7 @@
         },
         {
           "id": "UZB13",
-          "name": "Uzbekistan Team Photo",
+          "name": "UZB 13",
           "type": "sticker"
         },
         {
@@ -4728,7 +4728,7 @@
         },
         {
           "id": "COL13",
-          "name": "Colombia Team Photo",
+          "name": "COL 13",
           "type": "sticker"
         },
         {
@@ -4835,7 +4835,7 @@
         },
         {
           "id": "ENG13",
-          "name": "England Team Photo",
+          "name": "ENG 13",
           "type": "sticker"
         },
         {
@@ -4942,7 +4942,7 @@
         },
         {
           "id": "CRO13",
-          "name": "Croatia Team Photo",
+          "name": "CRO 13",
           "type": "sticker"
         },
         {
@@ -5049,7 +5049,7 @@
         },
         {
           "id": "GHA13",
-          "name": "Ghana Team Photo",
+          "name": "GHA 13",
           "type": "sticker"
         },
         {
@@ -5156,7 +5156,7 @@
         },
         {
           "id": "PAN13",
-          "name": "Panama Team Photo",
+          "name": "PAN 13",
           "type": "sticker"
         },
         {

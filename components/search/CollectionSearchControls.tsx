@@ -59,14 +59,16 @@ export function CollectionSearchControls({
                 <TextInput
                     value={query}
                     onChangeText={onChangeQuery}
-                    placeholder="Search by Sticker Code or Team name"
+                    placeholder="Search by sticker ID or album section"
                     placeholderTextColor={
                         theme.colors.textMuted
                     }
-                    autoCapitalize="none"
+                    autoCapitalize="characters"
                     autoCorrect={false}
                     returnKeyType="search"
                     clearButtonMode="while-editing"
+                    accessibilityLabel="Search stickers"
+                    accessibilityHint="Search by sticker ID or album section"
                     style={styles.input}
                 />
 

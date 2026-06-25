@@ -36,23 +36,37 @@ function matchesSearchQuery(
     sticker: CollectionStickerResult,
     query: string
 ): boolean {
-    if (!query) {
+    if (!query.trim()) {
         return true;
     }
 
     const normalizedQuery =
         normalizeSearchValue(query);
 
-    const searchableValues = [
-        sticker.id,
-        sticker.name,
-        sticker.sectionId,
-        sticker.sectionName,
-        sticker.federation ?? '',
-    ];
+    const compactQuery =
+        normalizedQuery.replace(
+            /[\s_-]+/g,
+            ''
+        );
 
-    return searchableValues.some((value) =>
-        normalizeSearchValue(value).includes(
+    const normalizedStickerId =
+        normalizeSearchValue(
+            sticker.id
+        ).replace(
+            /[\s_-]+/g,
+            ''
+        );
+
+    const normalizedSectionName =
+        normalizeSearchValue(
+            sticker.sectionName
+        );
+
+    return (
+        normalizedStickerId.includes(
+            compactQuery
+        ) ||
+        normalizedSectionName.includes(
             normalizedQuery
         )
     );

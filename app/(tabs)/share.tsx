@@ -277,38 +277,27 @@ export default function ShareScreen() {
                 ) : (
                     <>
                         <ExportCard
-                            eyebrow="NEEDED"
-                            title="Missing stickers"
-                            description="Share every sticker you still need, grouped by album section."
-                            count={
+                            eyebrow="PROGRESS"
+                            title="Collection summary"
+                            description="Share your album completion, foil progress, and duplicate totals."
+                            count={Math.round(
                                 stats.overall
-                                    .missingStickers
-                            }
-                            countLabel="missing"
-                            textButtonLabel="Share missing list"
-                            csvButtonLabel="Export missing CSV"
-                            variant="missing"
+                                    .completionPercentage
+                            )}
+                            countLabel="% complete"
+                            textButtonLabel="Share summary"
+                            variant="summary"
                             disabled={isBusy}
                             isSharingText={
                                 activeExport?.type ===
-                                'missing' &&
+                                'summary' &&
                                 activeExport.format ===
                                 'text'
                             }
-                            isExportingCsv={
-                                activeExport?.type ===
-                                'missing' &&
-                                activeExport.format ===
-                                'csv'
-                            }
+                            isExportingCsv={false}
                             onShareText={() =>
                                 handleShareText(
-                                    'missing'
-                                )
-                            }
-                            onExportCsv={() =>
-                                handleExportCsv(
-                                    'missing'
+                                    'summary'
                                 )
                             }
                         />
@@ -354,59 +343,41 @@ export default function ShareScreen() {
                         />
 
                         <ExportCard
-                            eyebrow="PROGRESS"
-                            title="Collection summary"
-                            description="Share your album completion, foil progress, and duplicate totals."
-                            count={Math.round(
+                            eyebrow="NEEDED"
+                            title="Missing stickers"
+                            description="Share every sticker you still need, grouped by album section."
+                            count={
                                 stats.overall
-                                    .completionPercentage
-                            )}
-                            countLabel="% complete"
-                            textButtonLabel="Share summary"
-                            variant="summary"
+                                    .missingStickers
+                            }
+                            countLabel="missing"
+                            textButtonLabel="Share missing list"
+                            csvButtonLabel="Export missing CSV"
+                            variant="missing"
                             disabled={isBusy}
                             isSharingText={
                                 activeExport?.type ===
-                                'summary' &&
+                                'missing' &&
                                 activeExport.format ===
                                 'text'
                             }
-                            isExportingCsv={false}
+                            isExportingCsv={
+                                activeExport?.type ===
+                                'missing' &&
+                                activeExport.format ===
+                                'csv'
+                            }
                             onShareText={() =>
                                 handleShareText(
-                                    'summary'
+                                    'missing'
+                                )
+                            }
+                            onExportCsv={() =>
+                                handleExportCsv(
+                                    'missing'
                                 )
                             }
                         />
-
-                        <View
-                            style={
-                                styles.noteCard
-                            }
-                        >
-                            <Text
-                                style={
-                                    styles.noteTitle
-                                }
-                            >
-                                Text and CSV export
-                            </Text>
-
-                            <Text
-                                style={
-                                    styles.noteDescription
-                                }
-                            >
-                                Text lists are ideal
-                                for WhatsApp,
-                                Messages, and email.
-                                CSV files can be
-                                opened in Excel,
-                                Numbers, Google
-                                Sheets, or another
-                                spreadsheet app.
-                            </Text>
-                        </View>
                     </>
                 )}
             </ScrollView>
