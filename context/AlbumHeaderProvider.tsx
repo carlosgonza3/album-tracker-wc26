@@ -4,6 +4,7 @@ import {
     useCallback,
     useMemo,
     useRef,
+    useState,
 } from 'react';
 
 import {
@@ -24,8 +25,14 @@ interface AlbumHeaderScrollActions {
 export interface AlbumHeaderContextValue {
     scrollY: SharedValue<number>;
 
+    isHeaderExpanded: boolean;
+
     collapseHeader: () => void;
     expandHeader: () => void;
+
+    setHeaderExpanded: (
+        isExpanded: boolean
+    ) => void;
 
     registerScrollActions: (
         actions:
@@ -46,6 +53,11 @@ export function AlbumHeaderProvider({
     const scrollY =
         useSharedValue(0);
 
+    const [
+        isHeaderExpanded,
+        setIsHeaderExpanded,
+    ] = useState(true);
+
     const scrollActionsRef =
         useRef<
             AlbumHeaderScrollActions |
@@ -65,14 +77,40 @@ export function AlbumHeaderProvider({
             []
         );
 
+    const setHeaderExpanded =
+        useCallback(
+            (
+                isExpanded: boolean
+            ) => {
+                setIsHeaderExpanded(
+                    isExpanded
+                );
+            },
+            []
+        );
+
     const collapseHeader =
         useCallback(() => {
+            /*
+             * Update global navigation visibility
+             * immediately, then run the existing Album
+             * list transition.
+             */
+            setIsHeaderExpanded(false);
+
             scrollActionsRef.current
                 ?.scrollToSections(true);
         }, []);
 
     const expandHeader =
         useCallback(() => {
+            /*
+             * Hide the bottom tabs immediately on every
+             * route, then run the existing Album list
+             * transition.
+             */
+            setIsHeaderExpanded(true);
+
             scrollActionsRef.current
                 ?.scrollToAlbumCover(true);
         }, []);
@@ -81,15 +119,19 @@ export function AlbumHeaderProvider({
         useMemo<AlbumHeaderContextValue>(
             () => ({
                 scrollY,
+                isHeaderExpanded,
                 collapseHeader,
                 expandHeader,
+                setHeaderExpanded,
                 registerScrollActions,
             }),
             [
                 collapseHeader,
                 expandHeader,
+                isHeaderExpanded,
                 registerScrollActions,
                 scrollY,
+                setHeaderExpanded,
             ]
         );
 

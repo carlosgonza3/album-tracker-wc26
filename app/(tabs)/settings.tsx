@@ -17,7 +17,6 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { theme } from '@/constants/theme';
 import { albumCatalogue } from '@/data/albumCatalogue';
@@ -35,7 +34,6 @@ type DataAction =
     | 'reset';
 
 export default function SettingsScreen() {
-    const insets = useSafeAreaInsets();
 
     const {
         settings,
@@ -439,30 +437,31 @@ export default function SettingsScreen() {
     return (
         <ScrollView
             style={styles.screen}
-            contentContainerStyle={[
-                styles.content,
-                {
-                    paddingTop:
-                        insets.top +
-                        theme.spacing.lg,
-                    paddingBottom:
-                        insets.bottom +
-                        theme.spacing.xl,
-                },
-            ]}
+            contentContainerStyle={
+                styles.content
+            }
             showsVerticalScrollIndicator={
                 false
             }
             keyboardShouldPersistTaps="handled"
         >
-            <Text style={styles.title}>
-                Settings
-            </Text>
+            <View style={styles.header}>
 
-            <Text style={styles.subtitle}>
-                Customize how you interact
-                with your sticker collection.
-            </Text>
+                <Text style={styles.title}>
+
+                    Settings
+
+                </Text>
+
+                <Text style={styles.subtitle}>
+
+                    Customize how you interact
+
+                    with your sticker collection.
+
+                </Text>
+
+            </View>
 
             <View style={styles.section}>
                 <Text
@@ -1464,37 +1463,43 @@ const styles = StyleSheet.create({
     },
 
     content: {
+        gap: theme.spacing.lg,
         paddingHorizontal:
+        theme.spacing.xl,
+        paddingTop:
         theme.spacing.lg,
+        paddingBottom:
+            theme.spacing.xl * 2,
+    },
+
+    header: {
+        gap: theme.spacing.sm,
+        marginBottom:
+        theme.spacing.sm,
     },
 
     title: {
-        marginTop:
-        theme.spacing.xs,
         fontSize:
-        theme.typography.sizes.display,
+        theme.typography.sizes.xxl,
         fontWeight:
         theme.typography.weights.bold,
-        letterSpacing: -0.8,
         color:
         theme.colors.textPrimary,
     },
 
     subtitle: {
-        maxWidth: 340,
-        marginTop:
-        theme.spacing.sm,
+        maxWidth: 520,
         fontSize:
-        theme.typography.sizes.sm,
-        lineHeight: 20,
+        theme.typography.sizes.md,
+        lineHeight: 22,
         color:
         theme.colors.textSecondary,
     },
 
     section: {
-        marginTop:
-        theme.spacing.xl,
+        marginTop: 0,
     },
+
 
     sectionTitle: {
         marginBottom:

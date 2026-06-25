@@ -1,10 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import {
+    BottomTabBar,
+    type BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
+
+import {
     Tabs,
 } from 'expo-router';
 
 import {
+    useCallback,
     useMemo,
 } from 'react';
 
@@ -12,6 +18,11 @@ import {
     StyleSheet,
     View,
 } from 'react-native';
+
+import {
+    runOnJS,
+    useAnimatedReaction,
+} from 'react-native-reanimated';
 
 import {
     AlbumHeader,
@@ -44,6 +55,8 @@ import {
     getCollectionSummary,
 } from '@/utils/albumStats';
 
+const HEADER_EXPANDED_THRESHOLD = 0.15;
+
 function normalizeCopies(
     copies: number
 ): number {
@@ -61,6 +74,7 @@ function GlobalAlbumTabs() {
     const {
         safeAreaTop,
         expandedHeaderHeight,
+        headerCollapseDistance,
     } = useAlbumLayout();
 
     const {
@@ -69,9 +83,71 @@ function GlobalAlbumTabs() {
 
     const {
         scrollY,
+        isHeaderExpanded,
         collapseHeader,
         expandHeader,
+        setHeaderExpanded,
     } = useAlbumHeader();
+
+    const expandedRange =
+        headerCollapseDistance *
+        HEADER_EXPANDED_THRESHOLD;
+
+    /*
+     * Keep the provider state synchronized with the
+     * animated header position.
+     *
+     * This covers both:
+     * - direct header gestures
+     * - vertical Album list scrolling
+     */
+    useAnimatedReaction(
+        () =>
+            scrollY.value <=
+            expandedRange,
+        (
+            isExpanded,
+            wasExpanded
+        ) => {
+            if (
+                isExpanded ===
+                wasExpanded
+            ) {
+                return;
+            }
+
+            runOnJS(
+                setHeaderExpanded
+            )(isExpanded);
+        },
+        [
+            expandedRange,
+            setHeaderExpanded,
+        ]
+    );
+
+    const renderTabBar =
+        useCallback(
+            (
+                props:
+                BottomTabBarProps
+            ) => {
+                if (
+                    isHeaderExpanded
+                ) {
+                    return null;
+                }
+
+                return (
+                    <BottomTabBar
+                        {...props}
+                    />
+                );
+            },
+            [
+                isHeaderExpanded,
+            ]
+        );
 
     const albumSummary =
         useMemo(
@@ -179,8 +255,28 @@ function GlobalAlbumTabs() {
                 }
             />
 
-            <View style={styles.tabsContainer}>
+            <View
+                pointerEvents={
+                    isHeaderExpanded
+                        ? 'none'
+                        : 'auto'
+                }
+                accessibilityElementsHidden={
+                    isHeaderExpanded
+                }
+                importantForAccessibility={
+                    isHeaderExpanded
+                        ? 'no-hide-descendants'
+                        : 'auto'
+                }
+                style={[
+                    styles.tabsContainer,
+                    isHeaderExpanded &&
+                    styles.tabsContainerHidden,
+                ]}
+            >
                 <Tabs
+                    tabBar={renderTabBar}
                     screenOptions={{
                         headerShown: false,
 
@@ -191,15 +287,8 @@ function GlobalAlbumTabs() {
                         theme.colors
                             .textMuted,
 
-                        tabBarStyle: {
-                            borderTopWidth: 1,
-
-                            borderTopColor:
-                            theme.colors.border,
-
-                            backgroundColor:
-                            theme.colors.primary,
-                        },
+                        tabBarStyle:
+                        styles.tabBar,
 
                         tabBarLabelStyle: {
                             fontSize:
@@ -208,7 +297,8 @@ function GlobalAlbumTabs() {
 
                             fontWeight:
                             theme.typography
-                                .weights.semibold,
+                                .weights
+                                .semibold,
                         },
                     }}
                 >
@@ -238,7 +328,8 @@ function GlobalAlbumTabs() {
                     <Tabs.Screen
                         name="collection"
                         options={{
-                            title: 'Collection',
+                            title:
+                                'Collection',
 
                             tabBarIcon: ({
                                              color,
@@ -284,7 +375,8 @@ function GlobalAlbumTabs() {
                     <Tabs.Screen
                         name="settings"
                         options={{
-                            title: 'Settings',
+                            title:
+                                'Settings',
 
                             tabBarIcon: ({
                                              color,
@@ -328,5 +420,17 @@ const styles = StyleSheet.create({
     tabsContainer: {
         flex: 1,
         minHeight: 0,
+    },
+
+    tabBar: {
+        borderTopWidth: 1,
+        borderTopColor:
+        theme.colors.border,
+        backgroundColor:
+        theme.colors.primary,
+    },
+
+    tabsContainerHidden: {
+        opacity: 0,
     },
 });
